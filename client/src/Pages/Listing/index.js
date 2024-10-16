@@ -88,23 +88,25 @@ const Listing = ({ type }) => {
             context.setProductData([]);
             context.setIsLoading(true);
             try {
-                let res;
+                let url;
                 if (type === 'category') {
-                    const url = `/api/product/category/${id}?page=${context.pageCategoryProduct}&limit=${context.itemsPerCategoryPage}&search=${context.searchCategoryPageQuery}&sortBy=${context.setCategoryPageSortBy}`;
-                    console.log(`Fetching from: ${url}`); // Log the fetch URL
-                    res = await fetchDataFromApi(url);
-                    context.setProductData(res);
+                    url = `/api/product/category/${id}?page=${context.pageCategoryProduct}&limit=${context.itemsPerCategoryPage}&search=${context.searchCategoryPageQuery}&sortBy=${context.setCategoryPageSortBy}`;
                 } else if (type === 'subcategory') {
-                    const url = `/api/product/subcategory/${id}?page=${context.pageSubCategoryProduct}&limit=${context.itemsPerSubCategoryPage}&search=${context.searchSubCategoryPageQuery}&sortBy=${context.setSubCategoryPageSortBy}`;
-                    console.log(`Fetching from: ${url}`); // Log the fetch URL
-                    res = await fetchDataFromApi(url);
-                    context.setProductData(res);
+                    url = `/api/product/subcategory/${id}?page=${context.pageSubCategoryProduct}&limit=${context.itemsPerSubCategoryPage}&search=${context.searchSubCategoryPageQuery}&sortBy=${context.setSubCategoryPageSortBy}`;
                 } else if (type === 'products') {
-                    const url = `/api/product?page=${context.page}&limit=${context.itemsPerPage}&search=${context.searchQuery}&sortBy=${context.sortBy}`;
-                    console.log(`Fetching from: ${url}`); // Log the fetch URL
-                    res = await fetchDataFromApi(url);
-                    context.setProductData(res);
-                } 
+                    url = `/api/product?page=${context.page}&limit=${context.itemsPerPage}&search=${context.searchQuery}&sortBy=${context.sortBy}`;
+                } else if (type === 'filtered') {
+                    context.setPageFilter(1);
+                    const categoryQuery = context.selectedCategories.join(',');
+                    const statusQuery = context.selectedStatus.length > 0 ? `&inStock=${context.selectedStatus.join(',')}` : '';
+                    const brandsQuery = context.selectedBrands.length > 0 ? `&brands=${context.selectedBrands.map(encodeURIComponent).join(',')}` : '';
+                    url = `/api/product?category=${categoryQuery}&minPrice=&maxPrice=${statusQuery}${brandsQuery}&page=${context.pageFilter}&limit=${context.itemsPerPageFilter}&search=${context.searchFilterQuery}&sortBy=${context.sortByFilter}`;
+                }
+
+                console.log(`Fetching from: ${url}`); // Log the fetch URL
+                const res = await fetchDataFromApi(url);
+                context.setProductData(res);
+
             } catch (error) {
                 console.error("Error fetching products:", error);
             } finally {
@@ -125,7 +127,44 @@ const Listing = ({ type }) => {
         context.searchCategoryPageQuery,
         context.searchSubCategoryPageQuery,
         context.setCategoryPageSortBy,
-        context.setSubCategoryPageSortBy]); // Include pageCategoryProduct in the dependency array
+        context.setSubCategoryPageSortBy,
+        context.selectedCategories,
+        context.selectedStatus,
+        context.selectedBrands,
+        context.pageFilter,
+        context.itemsPerPageFilter,
+        context.searchFilterQuery,
+        context.sortByFilter]); // Include pageCategoryProduct in the dependency array
+    
+        const setCurrentPage = () => {
+            switch (type) {
+                case 'category': 
+                    return context.pageCategoryProduct;
+                case 'subcategory': 
+                    return context.pageSubCategoryProduct;
+                case 'products': 
+                    return context.page;
+                case 'filtered': 
+                    return context.pageFilter;
+                default: 
+                    return context.page || 1; // Return default page or 1 if not defined
+            }
+        };
+
+    const setShowItemsPerPage = () => {
+        switch (type) {
+            case 'category': 
+                return context.itemsPerCategoryPage;
+            case 'subcategory': 
+                return context.itemsPerSubCategoryPage;
+            case 'products': 
+                return context.itemsPerPage;
+            case 'filtered': 
+                return context.itemsPerPageFilter;
+            default: 
+                return context.itemsPerPage || 10; // Return default page or 1 if not defined
+        }
+    }
 
     return (
         <>
@@ -172,13 +211,7 @@ const Listing = ({ type }) => {
                                         onClick={handleClick}
                                         className="text-black text-[15px] font-normal flex items-center"
                                     >
-                                        <p>Show {type === 'category' 
-                                            ? context.itemsPerCategoryPage 
-                                            : ( type === 'subcategory' 
-                                            ? context.itemsPerSubCategoryPage 
-                                            : ( type === 'products' 
-                                            ? context.itemsPerPage 
-                                            : context.itemsPerPageFilter))}</p>
+                                        <p>Show {}</p>
                                         <FaAngleDown className="text-black opacity-50 ml-2" />
                                     </Button>
                                     <Menu
@@ -230,13 +263,7 @@ const Listing = ({ type }) => {
                         <div className="flex justify-center mt-4">
                             <Pagination
                                 count={context.productData?.totalPages}
-                                page={type === 'category' 
-                                    ? context.pageCategoryProduct 
-                                    : (type === 'subcategory' 
-                                        ? context.pageSubCategoryProduct 
-                                        : (type === 'products' 
-                                            ? context.page 
-                                            : context.pageFilter))}
+                                page={setCurrentPage()}
                                 onChange={handleChangePage}
                                 color="primary"
                             />

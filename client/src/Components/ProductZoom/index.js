@@ -1,18 +1,15 @@
 import Slider from "react-slick";
 import InnerImageZoom from 'react-inner-image-zoom';
-
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
 
 const ProductZoom = ({ images }) => {
-    const [slideIndex, setSlideIndex] = useState(0);
 
     const zoomSliderBig = useRef();
     const zoomSlider = useRef();
 
     const goto = (index) => {
         if (zoomSlider.current && zoomSliderBig.current) {
-            setSlideIndex(index);
             zoomSlider.current.slickGoTo(index);
             zoomSliderBig.current.slickGoTo(index);
         }
@@ -55,7 +52,7 @@ const ProductZoom = ({ images }) => {
             <Slider {...settings} className='zoomSlider' ref={zoomSlider}>
                 {images.map((src, index) => (
                     <div className="item" key={index}>
-                        <img src={src.url} alt='product image' onClick={() => goto(index)} />
+                        <img src={src.url} alt='product view' onClick={() => goto(index)} />
                     </div>
                 ))}
             </Slider>

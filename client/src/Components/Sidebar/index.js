@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import Slider from "@mui/material/Slider";
@@ -14,7 +14,6 @@ const Sidebar = () => {
     const productStatus = ['In Stock', 'Out of Stock']; // Adjusted to handle stock status
 
     // Fetch and set the price range based on product data
-    // Group brands by category based on product data
     useEffect(() => {
         const brandsMap = {};
 
@@ -61,16 +60,16 @@ const Sidebar = () => {
     // Handle when the slider interaction is finished (user releases the slider)
     const handleSliderCommit = async () => {
         window.scrollTo(0, 0);
+        
         context.setProductData([]);
         context.setIsLoading(true);
         
         try {
             const categoryQuery = context.selectedCategories.join(',');
             const statusQuery = context.selectedStatus.length > 0 ? `&status=${context.selectedStatus.join(',')}` : '';
-            
-            // Encode brand names using encodeURIComponent to handle spaces and special characters
             const brandsQuery = context.selectedBrands.length > 0 ? `&brands=${context.selectedBrands.map(encodeURIComponent).join(',')}` : '';
-    
+            context.setPageFilter(1);
+
             const url = `/api/product?category=${categoryQuery}&minPrice=${context.value[0]}&maxPrice=${context.value[1]}${statusQuery}${brandsQuery}&page=${context.pageFilter}&limit=${context.itemsPerPageFilter}&search=${context.searchFilterQuery}&sortBy=${context.sortByFilter}`;
     
             console.log(`Fetching from: ${url}`);
@@ -87,7 +86,6 @@ const Sidebar = () => {
     // Handle checkbox change for categories
     const handleCheckboxChange = (event, categoryId) => {
         navigator('/search');
-        context.setPageFilter(1);
         context.setSelectedCategories(prev => {
             if (event.target.checked) {
                 return [...prev, categoryId]; // Add category if checked
@@ -100,7 +98,6 @@ const Sidebar = () => {
     // Handle checkbox change for stock status
     const handleStatusChange = (event, status) => {
         navigator('/search');
-        context.setPageFilter(1);
         context.setSelectedStatus(prev => {
             if (event.target.checked) {
                 return [...prev, status]; // Add status if checked
@@ -112,7 +109,6 @@ const Sidebar = () => {
 
     const handleBrandChange = (event, brand) => {
         navigator('/search');
-        context.setPageFilter(1);
         context.setSelectedBrands(prev => {
             if (event.target.checked) {
                 return [...prev, brand];
@@ -121,42 +117,6 @@ const Sidebar = () => {
             }
         });
     };
-
-    // API call whenever selectedCategories or selectedStatus changes
-    useEffect(() => {
-        window.scrollTo(0, 0);
-
-        const fetchProducts = async () => {
-            context.setProductData([]);
-            context.setIsLoading(true);
-            try {
-                const categoryQuery = context.selectedCategories.join(',');
-                const statusQuery = context.selectedStatus.length > 0 ? `&inStock=${context.selectedStatus.join(',')}` : '';
-                const brandsQuery = context.selectedBrands.length > 0 ? `&brands=${context.selectedBrands.map(encodeURIComponent).join(',')}` : '';
-
-                const url = `/api/product?category=${categoryQuery}&minPrice=&maxPrice=${statusQuery}${brandsQuery}&page=${context.pageFilter}&limit=${context.itemsPerPageFilter}&search=${context.searchFilterQuery}&sortBy=${context.sortByFilter}`;
-
-                console.log(url);
-                console.log(`Fetching from: ${url}`);
-                const res = await fetchDataFromApi(url);
-                context.setProductData(res);
-
-            
-            } catch (error) {
-                console.error("Error fetching products:", error);
-            } finally {
-                context.setIsLoading(false);
-            }
-        };
-
-        fetchProducts();
-    }, [context.selectedCategories, 
-        context.selectedStatus, 
-        context.selectedBrands, 
-        context.pageFilter, 
-        context.itemsPerPageFilter, 
-        context.searchFilterQuery, 
-        context.sortByFilter]);
 
     return (
         <div className="w-1/5 sticky top-5 h-fit">

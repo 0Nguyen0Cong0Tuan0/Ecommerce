@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=New+Amsterdam&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css');
+
+/* index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --font-family: "New Amsterdam", sans-serif;
+
+    --gradient-text: linear-gradient(89.27deg, #ae67fa 1.84%, #f491f4 100%);
+    --gradient-bar: linear-gradient(103.22deg, #ae67fa -13.68%, #f491f4 100%);
+
+    --color-bg: #040c18;
+    --color-footer: #031b34;
+    --color-blog: #042c54;
+    --color-text: #81afdd;
+    --color-subtext: #ff8a71;
+}
+
+body,
+h4,
+p,
+span {
+    font-family: "New Amsterdam", sans-serif;
+}
+
+::-webkit-scrollbar {
+    width: 3px !important;
+    height: 3px !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(to top,
+            #b91c1c,
+            #ef4444,
+            #000);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: linear-gradient(to top,
+            #7e22ce,
+            #a855f7,
+            #6b7280);
+}
+  
+@media screen and (min-width: 1300px) {
+    .container, .container-lg, .container-md, .container-sm, .container-xl {
+      max-width: 1370px;
+    }
+}

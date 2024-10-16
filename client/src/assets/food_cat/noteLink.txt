@@ -1,0 +1,13 @@
+Fresh Product: https://cdn-icons-png.flaticon.com/128/6724/6724521.png
+Bake: https://cdn-icons-png.flaticon.com/128/2917/2917629.png
+Bakery: https://cdn-icons-png.flaticon.com/128/992/992747.png
+Breakfast: https://cdn-icons-png.flaticon.com/128/887/887396.png
+Coffee: https://cdn-icons-png.flaticon.com/128/590/590836.png
+Daily Product: https://cdn-icons-png.flaticon.com/128/10616/10616680.png
+Drinks: https://cdn-icons-png.flaticon.com/128/2405/2405597.png
+Frozen Goods: https://cdn-icons-png.flaticon.com/128/2681/2681807.png
+Green Tea: https://cdn-icons-png.flaticon.com/128/4857/4857219.png
+Liquor: https://cdn-icons-png.flaticon.com/128/920/920541.png
+Meat: https://cdn-icons-png.flaticon.com/128/2224/2224259.png
+Snack: https://cdn-icons-png.flaticon.com/128/859/859293.png
+Sweets: https://cdn-icons-png.flaticon.com/128/2454/2454271.png

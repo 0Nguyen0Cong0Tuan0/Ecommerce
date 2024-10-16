@@ -1,0 +1,97 @@
+/* index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=New+Amsterdam&display=swap');
+
+:root {
+    --main-color-1: 53, 30, 95;
+    /* RGB equivalent of #351e5f */
+    --main-color-2: 87, 65, 168;
+    /* RGB equivalent of #5741a8 */
+    --main-color-3: 23, 7, 42;
+    /* RGB equivalent of #17072a */
+    --main-color-4: 166, 95, 201;
+    /* RGB equivalent of #a65fc9 */
+    --main-color-5: 182, 172, 239;
+    /* RGB equivalent of #b6acef */
+    --main-color-6: 0, 0, 0;
+    /* RGB equivalent of #000000 */
+}
+
+
+body,
+h4,
+p,
+span {
+    font-family: "New Amsterdam", sans-serif;
+}
+
+::-webkit-scrollbar {
+    width: 3px !important;
+    height: 3px !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(to top,
+            #b91c1c,
+            #ef4444,
+            #000);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: linear-gradient(to top,
+            #7e22ce,
+            #a855f7,
+            #6b7280);
+}
+
+
+.btn-rounded-full {
+    border-radius: 100% !important;
+}
+
+.searchbox input::-webkit-input-placeholder {
+    color: #ffffff;
+}
+
+#notifications ul.MuiList-root.MuiList-padding.MuiMenu-list.css-99wn1p-MuiList-root-MuiMenu-list {
+    width: 300px;
+}
+
+.submenu {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.6s ease-in-out, opacity 0.1s ease-in-out;
+}
+
+/* Expanded state when submenu is open */
+.submenu-open {
+    max-height: 500px;
+    /* Adjust based on your submenu content */
+    opacity: 1;
+}
+
+/* MenuItem gradient text */
+.gradientText {
+    background: linear-gradient(to top,
+            #b91c1c,
+            #ef4444,
+            #000);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    /* Make the text transparent to show the background gradient */
+}
+
+/* Optional: Add styling for the MenuItem itself */
+.menuItem.css-1h4bzp1-MuiButtonBase-root-MuiMenuItem-root {
+    background-color: transparent;
+    /* Make sure the background is transparent if you want only the text to have a gradient */
+}
+
+.pagination {
+    color: white;
+}

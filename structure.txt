@@ -1,0 +1,62 @@
+Front-end
+- Home
+- Product listing
+- Product details
+- Cart
+- Sign in
+- Sign up
+- My list
+- Orders
+- Search
+- My account
+- Contact
+- About us
+
+
+All npm install include: 
+- npx create-react-app ./
+- npm install react-router-dom
+- npm install react-icons --save
+
+- npm install (for bootstrap - see more on Google)
+- npm install @mui/material @emotion/react @emotion/styled
+- npm install @mui/material @mui/styled-engine-sc styled-components
+- npm install @mui/icons-material
+- npm install react-slick --save
+- npm install react-owl-carousel2
+
+<---->
+@import url('https://fonts.googleapis.com/css2?family=New+Amsterdam&display=swap');
+
+:root {
+    --font-family: "New Amsterdam", sans-serif;
+
+    --gradient-text: linear-gradient(89.27deg, #ae67fa 1.84%, #f491f4 100%);
+    --gradient-bar: linear-gradient(103.22deg, #ae67fa -13.68%, #f491f4 100%);
+}
+
+<---->
+react-router-dom -> BrowserRouter - Router - Routes - Route
+
+<--->
+Note: In React, if we want to import any components/elements to other page
+-> First, it has to be export in the file name 'index.js'
+-> See in project, the Components/Header/index.js or Pages/Home/index.js
+
+---->
+createContext - including useContext and Provider
+https://react.dev/reference/react/createContext
+
+---->
+axios - used for communicating with Backend thought an asynchronous HTTP request
+
+---->
+useEffect --- synchronize a component with an external system.
+https://react.dev/reference/react/useEffect
+
+----> 
+span -> inline
+div -> block 
+-> Should use div to make the separated contents.
+
+#7E78D2

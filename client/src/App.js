@@ -1,20 +1,60 @@
 import './App.css';
 import "bootstrap/dist/css/bootstrap.min.css";
+
+// Pages
 import Home from './Pages/Home';
 import Listing from './Pages/Listing';
 import ProductDetails from './Pages/ProductDetails';
 import Cart from './Pages/Cart';
-import SignIn from './Pages/SignIn';
+import Login from './Pages/Login';
 import SignUp from './Pages/SignUp';
+import EmailVerification from './Pages/EmailVerification';
+import ForgotPassword from './Pages/ForgotPassword';
+import ResetPassword from './Pages/ResetPassword';
+
+// Components
 import Header from './Components/Header';
 import Footer from './Components/Footer';
+import ProductModal from './Components/ProductModal';
+import LoadingSpinner from './Components/LoadingSpinner';
+import useAuthStore from './store/authStore';
+
+// Route
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import React, { createContext, useEffect, useState } from 'react';
+
 import axios from 'axios';
-import ProductModal from './Components/ProductModal';
+
 import { fetchDataFromApi } from './utils/api';
 
 const MyContext = createContext();
+
+// Protect routes that require authentication
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, user } = useAuthStore();
+
+  if (!isAuthenticated) {
+    return <Navigate to='/login' replace />;
+  }
+
+  if (!user.isVerified) {
+    return <Navigate to='/verify-email' replace />;
+  }
+
+  return children;
+};
+
+// Redirect authenticated users to the home page
+const RedirectAuthenticatedUser = ({ children }) => {
+  const { isAuthenticated, user } = useAuthStore();
+
+  if (isAuthenticated && user.isVerified) {
+    return <Navigate to='/' replace />;
+  }
+
+  return children;
+};
+
 
 const App = () => {
   const [countryList, setCountryList] = useState([]);
@@ -113,6 +153,21 @@ const App = () => {
     brandsByCategory, setBrandsByCategory,
   };
 
+  useEffect(() => {
+    checkAuth(); // Checking authentication
+
+    // Set theme mode
+    if (themeMode === true) {
+      document.body.classList.remove('dark');
+      document.body.classList.add('light');
+      localStorage.setItem('themeMode', 'light');
+    } else {
+      document.body.classList.remove('light');
+      document.body.classList.add('dark');
+      localStorage.setItem('themeMode', 'dark');
+    }
+  }, [checkAuth, themeMode]);
+
   // Get Country
   useEffect(() => {
     const getCountry = async (url) => {
@@ -167,6 +222,15 @@ const App = () => {
     fetchData(); // Call the async function
   }, []);
 
+  // Render LoadingSpinner before authentication check finishes
+  if (isCheckingAuth) {
+    return (
+      <MyContext.Provider value={values}>
+        <LoadingSpinner />
+      </MyContext.Provider>
+    );
+  }
+
   return (
     <BrowserRouter>
       <MyContext.Provider value={values}>
@@ -175,17 +239,21 @@ const App = () => {
           {isLoading ? ( // Conditional rendering based on loading state
             <Route path='/' element={<div>Loading...</div>} />
           ) : (
-            catData && subCatData && productData && <Route path='/' exact={true} element={<Home />} />
+            catData && subCatData && productData && <Route path='/' element={<ProtectedRoute><Home content={<Dashboard />} /></ProtectedRoute>} />
           )}
           <Route path='/category/:id' exact={true} element={<Listing type="category" />} />
           <Route path='/subcategory/:id' exact={true} element={<Listing type="subcategory" />} />
           <Route path='/products' exact={true} element={<Listing type="products" />} />
           <Route path='/search' exact={true} element={<Listing type="filtered" />} />
-          
+
           <Route exact={true} path='/product/:id' element={<ProductDetails />} />
           <Route exact={true} path='/cart' element={<Cart />} />
-          <Route exact={true} path='/signIn' element={<SignIn />} />
-          <Route exact={true} path='/signUp' element={<SignUp />} />
+
+          <Route path='/signup' element={<RedirectAuthenticatedUser><SignUp /></RedirectAuthenticatedUser>} />
+          <Route path='/login' element={<RedirectAuthenticatedUser><Login /></RedirectAuthenticatedUser>} />
+          <Route path='/verify-email' element={<EmailVerification />} />
+          <Route path='/forgot-password' element={<RedirectAuthenticatedUser><ForgotPassword /></RedirectAuthenticatedUser>} />
+          <Route path='/reset-password/:token' element={<RedirectAuthenticatedUser><ResetPassword /></RedirectAuthenticatedUser>} />
         </Routes>
         {isHeaderFooterShow && <Footer />}
         {isOpenProductModal && <ProductModal info={productModalData} />}

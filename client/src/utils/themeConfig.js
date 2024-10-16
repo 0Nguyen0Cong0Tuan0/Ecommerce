@@ -1,16 +1,16 @@
 // themeConfig.js
 import { MdLightMode, MdDarkMode } from 'react-icons/md'
-import logo from '../assets/logo/lr1.gif';
-import logoDark from '../assets/logo/gr1.webp';
+// import logo from '../assets/logo/lr1.gif';
+// import logoDark from '../assets/logo/gr1.webp';
 
 export const getThemeStyles = (themeMode) => {
     return {
         nameClass: themeMode
             ? 'THE LAMB'
             : 'THE GOAT',
-        logoClass: themeMode
-            ? logo
-            : logoDark,
+        // logoClass: themeMode
+        //     ? logo
+        //     : logoDark,
         mainBackgroundClass: themeMode
             ? 'bg-white text-[#1f2937]'
             : 'bg-gray-800 text-white',

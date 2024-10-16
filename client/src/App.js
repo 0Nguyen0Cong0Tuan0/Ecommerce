@@ -20,7 +20,7 @@ import LoadingSpinner from './Components/LoadingSpinner';
 import useAuthStore from './store/authStore';
 
 // Route
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import React, { createContext, useEffect, useState } from 'react';
 
 import axios from 'axios';
@@ -61,8 +61,11 @@ const App = () => {
   const [selectedCountry, setSelectedCountry] = useState('');
   const [isOpenProductModal, setIsOpenProductModal] = useState(false);
   const [productModalData, setProductModalData] = useState(null);
-  const [isHeaderFooterShow, setIsHeaderFooterShow] = useState(true);
+  
   const [isLogin, setIsLogin] = useState(true);
+  const [isHideSidebarAndHeader, setIsHideSidebarAndHeader] = useState(false);
+  const [themeMode, setThemeMode] = useState(false); // True -> Light || False -> Dark
+
   const [catData, setCatData] = useState([]);
   const [subCatData, setSubCatData] = useState([]);
   const [productData, setProductData] = useState([]);
@@ -110,9 +113,10 @@ const App = () => {
     selectedCountry, setSelectedCountry,
 
     isOpenProductModal, setIsOpenProductModal,
-    isHeaderFooterShow, setIsHeaderFooterShow,
 
     isLogin, setIsLogin,
+    isHideSidebarAndHeader, setIsHideSidebarAndHeader,
+    themeMode, setThemeMode,
 
     catData, setCatData,
     subCatData, setSubCatData,
@@ -152,6 +156,8 @@ const App = () => {
     selectedBrands, setSelectedBrands,
     brandsByCategory, setBrandsByCategory,
   };
+
+  const { isCheckingAuth, checkAuth } = useAuthStore();
 
   useEffect(() => {
     checkAuth(); // Checking authentication
@@ -234,12 +240,12 @@ const App = () => {
   return (
     <BrowserRouter>
       <MyContext.Provider value={values}>
-        {isHeaderFooterShow && <Header />}
+        {isCheckingAuth && <Header />}
         <Routes>
           {isLoading ? ( // Conditional rendering based on loading state
             <Route path='/' element={<div>Loading...</div>} />
           ) : (
-            catData && subCatData && productData && <Route path='/' element={<ProtectedRoute><Home content={<Dashboard />} /></ProtectedRoute>} />
+            catData && subCatData && productData && <Route path='/' element={<ProtectedRoute><Home/></ProtectedRoute>} />
           )}
           <Route path='/category/:id' exact={true} element={<Listing type="category" />} />
           <Route path='/subcategory/:id' exact={true} element={<Listing type="subcategory" />} />
@@ -255,7 +261,7 @@ const App = () => {
           <Route path='/forgot-password' element={<RedirectAuthenticatedUser><ForgotPassword /></RedirectAuthenticatedUser>} />
           <Route path='/reset-password/:token' element={<RedirectAuthenticatedUser><ResetPassword /></RedirectAuthenticatedUser>} />
         </Routes>
-        {isHeaderFooterShow && <Footer />}
+        {isCheckingAuth && <Footer />}
         {isOpenProductModal && <ProductModal info={productModalData} />}
       </MyContext.Provider>
     </BrowserRouter>

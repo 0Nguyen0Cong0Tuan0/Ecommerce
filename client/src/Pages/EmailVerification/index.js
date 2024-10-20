@@ -44,7 +44,7 @@ const EmailVerification = () => {
 
         try {
             await verifyEmail(verificationCode);
-            navigate('/');
+            navigate('/login');
         } catch (error) {
             console.log(error);
         }

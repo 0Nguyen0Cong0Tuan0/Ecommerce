@@ -18,11 +18,11 @@ import { MyContext } from "../../App";
 import { getThemeStyles } from "../../utils/themeConfig";
 
 // ICONS
-import { MdDriveFileRenameOutline, MdBrandingWatermark, MdCategory, MdOutlineFormatSize, MdSdStorage } from "react-icons/md";
+import { MdDriveFileRenameOutline, MdBrandingWatermark, MdCategory } from "react-icons/md";
 import { IoMdPricetag, IoMdPricetags } from "react-icons/io";
 import { RiDiscountPercentFill } from "react-icons/ri";
 import { FaCartArrowDown } from "react-icons/fa";
-import { FaRankingStar, FaStar } from "react-icons/fa6";
+import { FaRankingStar } from "react-icons/fa6";
 import { BiSolidCategoryAlt } from "react-icons/bi";
 
 // Styled Breadcrumb using Material UI theme

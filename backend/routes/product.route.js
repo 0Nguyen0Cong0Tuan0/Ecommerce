@@ -62,12 +62,12 @@ router.post('/create', upload.array('images', 10), async (req, res) => {
 // Get all products with optional filtering for featured products
 router.get('/', async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const perPage = parseInt(req.query.limit) || 500;
+        const page = parseInt(req.query.page);
+        const perPage = parseInt(req.query.limit);
         const searchQuery = req.query.search || "";
         const sortBy = req.query.sortBy || 'date-asc';
         const isFeatured = req.query.f === 'true';
-        const { category, minPrice, maxPrice, inStock, brands } = req.query; // Added 'brand' to the query params
+        const { category, minPrice, maxPrice, status, brands } = req.query; // Added 'brand' to the query params
 
         // Set sorting criteria
         let sortQuery = {};
@@ -101,12 +101,22 @@ router.get('/', async (req, res) => {
             query.price = { $gte: parseFloat(minPrice), $lte: parseFloat(maxPrice) };
         }
 
-        // Stock status filtering based on inStock query parameter
-        if (inStock) {
-            if (inStock === 'true') {
+        // Stock status filtering based on status query parameter
+        // Stock status filtering based on status query parameter
+        if (status) {
+            const statusArray = status.split(','); // Allow multiple statuses (e.g., "1,2,3")
+
+            if (statusArray.includes('1')) {
                 query.countInStock = { $gt: 0 }; // In Stock (countInStock > 0)
-            } else if (inStock === 'false') {
+            }
+            if (statusArray.includes('2')) {
                 query.countInStock = { $lte: 0 }; // Out of Stock (countInStock <= 0)
+            }
+            if (statusArray.includes('3')) {
+                query.$and = [
+                    { oldPrice: { $exists: true, $gt: 0 } }, // oldPrice exists and is greater than 0
+                    { $expr: { $lt: ["$price", "$oldPrice"] } } // price is less than oldPrice
+                ];
             }
         }
 
@@ -116,7 +126,7 @@ router.get('/', async (req, res) => {
             query.brand = { $in: brandList }; // Assuming the product has a 'brand' field
         }
 
-    
+
         // Fetch total number of documents matching the query
         const totalPosts = await Product.countDocuments(query);
         const totalPages = Math.ceil(totalPosts / perPage);

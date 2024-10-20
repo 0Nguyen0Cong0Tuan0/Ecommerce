@@ -23,8 +23,6 @@ const Listing = ({ type }) => {
     const openDropDown = Boolean(anchorEl);
     const context = useContext(MyContext);
 
-
-
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget);
     };
@@ -34,31 +32,63 @@ const Listing = ({ type }) => {
     };
 
     const handleChangeItemsPerPage = (item) => {
-        if (type === 'category') {
-            context.setItemsPerCategoryPage(item);
-            context.setPageCategoryProduct(1); // Reset page to 1
-        } else if (type === 'subcategory') {
-            context.setItemsPerSubCategoryPage(item);
-            context.setPageSubCategoryProduct(1); // Reset page to 1
-        } else if (type === 'products') {
-            context.setItemsPerPage(item);
-            context.setPage(1); // Reset page to 1
-        } else if (type === 'filtered') {
-            context.setItemsPerPageFilter(item);
-            context.setPageFilter(1);
+        switch (type) {
+            case 'category':
+                context.setItemsPerCategoryPage(item);
+                context.setPageCategoryProduct(1); // Reset page to 1
+                break;
+            case 'subcategory':
+                context.setItemsPerSubCategoryPage(item);
+                context.setPageSubCategoryProduct(1); // Reset page to 1
+                break;
+            case 'products':
+                context.setItemsPerPage(item);
+                context.setPage(1); // Reset page to 1
+                break;
+            case 'filtered':
+                context.setItemsPerPageFilter(item);
+                context.setPageFilter(1); // Reset page to 1
+                break;
+            case 'featured':
+                context.setItemsPerPageFeatured(item);
+                context.setPageFeatured(1); // Reset page to 1
+                break;
+            case 'new':
+                context.setItemsPerPageNew(item);
+                context.setPageNew(1); // Reset page to 1
+                break;
+            default:
+                // Handle the case where type is not recognized
+                console.warn(`Unknown type: ${type}`);
+                break;
         }
-        setAnchorEl(null);
+        setAnchorEl(null); // Close the dropdown/menu
     };
 
+
     const handleChangePage = (event, value) => {
-        if (type === 'category') {
-            context.setPageCategoryProduct(value); // Update the current page in the context
-        } else if (type === 'subcategory') {
-            context.setPageSubCategoryProduct(value); // Update the current page in the context
-        } else if (type === 'products') {
-            context.setPage(value);
-        } else if (type === 'filtered') {
-            context.setPageFilter(value);
+        switch (type) {
+            case 'category':
+                context.setPageCategoryProduct(value); // Update the current page in the context
+                break;
+            case 'subcategory':
+                context.setPageSubCategoryProduct(value); // Update the current page in the context
+                break;
+            case 'products':
+                context.setPage(value);
+                break;
+            case 'filtered':
+                context.setPageFilter(value);
+                break;
+            case 'featured':
+                context.setPageFeatured(value);
+                break;
+            case 'new':
+                context.setPageNew(value);
+                break;
+            default:
+                console.warn(`Unknown type: ${type}`);
+                break;
         }
         context.setIsLoading(true); // Optionally set loading to true if you want to show a loading state
     };
@@ -89,18 +119,33 @@ const Listing = ({ type }) => {
             context.setIsLoading(true);
             try {
                 let url;
-                if (type === 'category') {
-                    url = `/api/product/category/${id}?page=${context.pageCategoryProduct}&limit=${context.itemsPerCategoryPage}&search=${context.searchCategoryPageQuery}&sortBy=${context.setCategoryPageSortBy}`;
-                } else if (type === 'subcategory') {
-                    url = `/api/product/subcategory/${id}?page=${context.pageSubCategoryProduct}&limit=${context.itemsPerSubCategoryPage}&search=${context.searchSubCategoryPageQuery}&sortBy=${context.setSubCategoryPageSortBy}`;
-                } else if (type === 'products') {
-                    url = `/api/product?page=${context.page}&limit=${context.itemsPerPage}&search=${context.searchQuery}&sortBy=${context.sortBy}`;
-                } else if (type === 'filtered') {
-                    context.setPageFilter(1);
-                    const categoryQuery = context.selectedCategories.join(',');
-                    const statusQuery = context.selectedStatus.length > 0 ? `&inStock=${context.selectedStatus.join(',')}` : '';
-                    const brandsQuery = context.selectedBrands.length > 0 ? `&brands=${context.selectedBrands.map(encodeURIComponent).join(',')}` : '';
-                    url = `/api/product?category=${categoryQuery}&minPrice=&maxPrice=${statusQuery}${brandsQuery}&page=${context.pageFilter}&limit=${context.itemsPerPageFilter}&search=${context.searchFilterQuery}&sortBy=${context.sortByFilter}`;
+
+                switch (type) {
+                    case 'category':
+                        url = `/api/product/category/${id}?page=${context.pageCategoryProduct}&limit=${context.itemsPerCategoryPage}&search=${context.searchCategoryPageQuery}&sortBy=${context.setCategoryPageSortBy}`;
+                        break;
+                    case 'subcategory':
+                        url = `/api/product/subcategory/${id}?page=${context.pageSubCategoryProduct}&limit=${context.itemsPerSubCategoryPage}&search=${context.searchSubCategoryPageQuery}&sortBy=${context.setSubCategoryPageSortBy}`;
+                        break;
+                    case 'products':
+                        url = `/api/product?page=${context.page}&limit=${context.itemsPerPage}&search=${context.searchQuery}&sortBy=${context.sortBy}`;
+                        break;
+                    case 'filtered':
+                        const categoryQuery = context.selectedCategories.join(',');
+                        const statusQuery = context.selectedStatus.length > 0 ? `&status=${context.selectedStatus.join(',')}` : '';
+                        const brandsQuery = context.selectedBrands.length > 0 ? `&brands=${context.selectedBrands.map(encodeURIComponent).join(',')}` : '';
+                        url = `/api/product?category=${categoryQuery}&minPrice=${context.value[0] === 0 ? '' : context.value[0]}&maxPrice=${context.value[1] === 0 ? '' : context.value[1]}${statusQuery}${brandsQuery}&page=${context.pageFilter}&limit=${context.itemsPerPageFilter}&search=${context.searchFilterQuery}&sortBy=${context.sortByFilter}`;
+                        break;
+                    case 'featured':
+                        url = `/api/product?f=true&page=${context.pageFeatured}&limit=${context.itemsPerPageFeatured}&search=${context.searchFeaturedQuery}&sortBy=${context.sortByFeatured}`;
+                        break;
+                    case 'new':
+                        url = `/api/product?sortBy=date-desc&page=${context.pageNew}&limit=${context.itemsPerPageNew}&search=${context.searchNewQuery}`;
+                        // url = `/api/product?sortBy=date-desc&page=${context.pageNew}&limit=${context.itemsPerPageNew}&search=${context.searchNewQuery}`;
+                        break;
+                    default:
+                        console.warn(`Unknown type: ${type}`);
+                        return;
                 }
 
                 console.log(`Fetching from: ${url}`); // Log the fetch URL
@@ -115,11 +160,15 @@ const Listing = ({ type }) => {
         };
 
         fetchProducts(); // Call the function to fetch products
-    }, [id,
+
+    }, [
+        id,
+        type,
         context.page,
         context.itemsPerPage,
         context.searchQuery,
         context.sortBy,
+
         context.pageCategoryProduct,
         context.pageSubCategoryProduct,
         context.itemsPerCategoryPage,
@@ -128,40 +177,62 @@ const Listing = ({ type }) => {
         context.searchSubCategoryPageQuery,
         context.setCategoryPageSortBy,
         context.setSubCategoryPageSortBy,
+
         context.selectedCategories,
         context.selectedStatus,
         context.selectedBrands,
+
         context.pageFilter,
         context.itemsPerPageFilter,
         context.searchFilterQuery,
-        context.sortByFilter]); // Include pageCategoryProduct in the dependency array
-    
-        const setCurrentPage = () => {
-            switch (type) {
-                case 'category': 
-                    return context.pageCategoryProduct;
-                case 'subcategory': 
-                    return context.pageSubCategoryProduct;
-                case 'products': 
-                    return context.page;
-                case 'filtered': 
-                    return context.pageFilter;
-                default: 
-                    return context.page || 1; // Return default page or 1 if not defined
-            }
-        };
+        context.sortByFilter,
+
+        context.pageFeatured,
+        context.itemsPerPageFeatured,
+        context.searchFeaturedQuery,
+        context.sortByFeatured,
+
+        context.pageNew,
+        context.itemsPerPageNew,
+        context.searchNewQuery,
+        context.sortByNew,
+    ]); // Include pageCategoryProduct in the dependency array
+
+
+    const setCurrentPage = () => {
+        switch (type) {
+            case 'category':
+                return context.pageCategoryProduct;
+            case 'subcategory':
+                return context.pageSubCategoryProduct;
+            case 'products':
+                return context.page;
+            case 'filtered':
+                return context.pageFilter;
+            case 'featured':
+                return context.pageFeatured;
+            case 'new':
+                return context.pageNew;
+            default:
+                return context.page || 1; // Return default page or 1 if not defined
+        }
+    };
 
     const setShowItemsPerPage = () => {
         switch (type) {
-            case 'category': 
+            case 'category':
                 return context.itemsPerCategoryPage;
-            case 'subcategory': 
+            case 'subcategory':
                 return context.itemsPerSubCategoryPage;
-            case 'products': 
+            case 'products':
                 return context.itemsPerPage;
-            case 'filtered': 
+            case 'filtered':
                 return context.itemsPerPageFilter;
-            default: 
+            case 'featured':
+                return context.itemsPerPageFeatured;
+            case 'new':
+                return context.itemsPerPageNew;
+            default:
                 return context.itemsPerPage || 10; // Return default page or 1 if not defined
         }
     }
@@ -211,7 +282,7 @@ const Listing = ({ type }) => {
                                         onClick={handleClick}
                                         className="text-black text-[15px] font-normal flex items-center"
                                     >
-                                        <p>Show {}</p>
+                                        <p>Show {setShowItemsPerPage()}</p>
                                         <FaAngleDown className="text-black opacity-50 ml-2" />
                                     </Button>
                                     <Menu

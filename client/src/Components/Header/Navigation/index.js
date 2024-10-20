@@ -23,12 +23,14 @@ const Navigation = () => {
     };
 
     const navigateCategoryProductPage = (id) => {
-        setIsOpenSideBarNav(!isOpenSideBarNav)
+        setIsOpenSideBarNav(!isOpenSideBarNav);
+        context.setPageCategoryProduct(1);
         navigate(`/category/${id}`)
     }
 
     const navigateSubCategoryProductPage = (id) => {
-        setIsOpenSideBarNav(!isOpenSideBarNav)
+        setIsOpenSideBarNav(!isOpenSideBarNav);
+        context.setPageSubCategoryProduct(1);
         navigate(`/subcategory/${id}`)
     }
 

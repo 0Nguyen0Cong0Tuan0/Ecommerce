@@ -22,33 +22,30 @@ import useAuthStore from './store/authStore';
 // Route
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import React, { createContext, useEffect, useState } from 'react';
-
-import axios from 'axios';
-
 import { fetchDataFromApi } from './utils/api';
 
 const MyContext = createContext();
 
 // Protect routes that require authentication
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, client } = useAuthStore();
 
   if (!isAuthenticated) {
     return <Navigate to='/login' replace />;
   }
 
-  if (!user.isVerified) {
+  if (!client.isVerified) {
     return <Navigate to='/verify-email' replace />;
   }
 
   return children;
 };
 
-// Redirect authenticated users to the home page
-const RedirectAuthenticatedUser = ({ children }) => {
-  const { isAuthenticated, user } = useAuthStore();
+// Redirect authenticated clients to the home page
+const RedirectAuthenticatedClient = ({ children }) => {
+  const { isAuthenticated, client } = useAuthStore();
 
-  if (isAuthenticated && user.isVerified) {
+  if (isAuthenticated && client.isVerified) {
     return <Navigate to='/' replace />;
   }
 
@@ -61,39 +58,51 @@ const App = () => {
   const [selectedCountry, setSelectedCountry] = useState('');
   const [isOpenProductModal, setIsOpenProductModal] = useState(false);
   const [productModalData, setProductModalData] = useState(null);
-  
+
   const [isLogin, setIsLogin] = useState(true);
   const [isHideSidebarAndHeader, setIsHideSidebarAndHeader] = useState(false);
   const [themeMode, setThemeMode] = useState(false); // True -> Light || False -> Dark
 
+  const [productData, setProductData] = useState([]);
   const [catData, setCatData] = useState([]);
   const [subCatData, setSubCatData] = useState([]);
-  const [productData, setProductData] = useState([]);
+  // Featured Product Data
+  const [featuredProductData, setFeaturedProductData] = useState([]);
+  // New Product Data
+  const [newProductData, setNewProductData] = useState([]);
+  // All Product Data
+  const [allProductData, setAllProductData] = useState([]);
 
 
   const [page, setPage] = useState(1);
   const [pageCategoryProduct, setPageCategoryProduct] = useState(1);
   const [pageSubCategoryProduct, setPageSubCategoryProduct] = useState(1);
   const [pageFilter, setPageFilter] = useState(1);
+  const [pageFeatured, setPageFeatured] = useState(1);
+  const [pageNew, setPageNew] = useState(1);
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [itemsPerCategoryPage, setItemsPerCategoryPage] = useState(10);
   const [itemsPerSubCategoryPage, setItemsPerSubCategoryPage] = useState(10);
   const [itemsPerPageFilter, setItemsPerPageFilter] = useState(10);
+  const [itemsPerPageFeatured, setItemsPerPageFeatured] = useState(10);
+  const [itemsPerPageNew, setItemsPerPageNew] = useState(10);
+  
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchCategoryPageQuery, setSearchCategoryPageQuery] = useState('');
   const [searchSubCategoryPageQuery, setSearchSubCategoryPageQuery] = useState('');
   const [searchFilterQuery, setSearchFilterQuery] = useState('');
+  const [searchFeaturedQuery, setSearchFeaturedQuery] = useState('');
+  const [searchNewQuery, setSearchNewQuery] = useState('');
 
   const [sortBy, setSortBy] = useState('');
   const [categoryPageSortBy, setCategoryPageSortBy] = useState('');
   const [subCategoryPageSortBy, setSubCategoryPageSortBy] = useState('');
   const [sortByFilter, setSortByFilter] = useState('');
+  const [sortByFeatured, setSortByFeatured] = useState('');
+  const [sortByNew, setSortByNew] = useState('');
 
-
-  // Random Featured Product Data
-  const [featuredProductData, setFeaturedProductData] = useState([]);
 
   // Loading state
   const [isLoading, setIsLoading] = useState(true);
@@ -114,6 +123,8 @@ const App = () => {
 
     isOpenProductModal, setIsOpenProductModal,
 
+    isLoading, setIsLoading,
+
     isLogin, setIsLogin,
     isHideSidebarAndHeader, setIsHideSidebarAndHeader,
     themeMode, setThemeMode,
@@ -122,6 +133,8 @@ const App = () => {
     subCatData, setSubCatData,
     productData, setProductData,
     featuredProductData, setFeaturedProductData,
+    newProductData, setNewProductData,
+    allProductData,
 
     setProductModalData,
 
@@ -140,13 +153,20 @@ const App = () => {
     searchSubCategoryPageQuery, setSearchSubCategoryPageQuery,
     subCategoryPageSortBy, setSubCategoryPageSortBy,
 
-    isLoading, setIsLoading,
-
     pageFilter, setPageFilter,
     itemsPerPageFilter, setItemsPerPageFilter,
     searchFilterQuery, setSearchFilterQuery,
     sortByFilter, setSortByFilter,
 
+    pageFeatured, setPageFeatured,
+    itemsPerPageFeatured, setItemsPerPageFeatured,
+    searchFeaturedQuery, setSearchFeaturedQuery,
+    sortByFeatured, setSortByFeatured,
+
+    pageNew, setPageNew,
+    itemsPerPageNew, setItemsPerPageNew,
+    searchNewQuery, setSearchNewQuery,
+    sortByNew, setSortByNew,
 
     minPrice, setMinPrice,
     maxPrice, setMaxPrice,
@@ -157,7 +177,7 @@ const App = () => {
     brandsByCategory, setBrandsByCategory,
   };
 
-  const { isCheckingAuth, checkAuth } = useAuthStore();
+  const { isCheckingAuth, checkAuth, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     checkAuth(); // Checking authentication
@@ -174,26 +194,21 @@ const App = () => {
     }
   }, [checkAuth, themeMode]);
 
-  // Get Country
   useEffect(() => {
-    const getCountry = async (url) => {
-      try {
-        const res = await axios.get(url);
-        setCountryList(res.data.data);
-      } catch (error) {
-        console.error("Error fetching countries:", error);
-      }
-    };
-
-    getCountry('https://countriesnow.space/api/v0.1/countries/');
+    const getCountries = async () => {
+      const response = await fetch('http://localhost:5000/api/countries'); // Adjust the URL for production
+      const data = await response.json();
+      setCountryList(data.data);
+    }
+    getCountries();
   }, []);
 
-  // Get All Featured Product
+  // Get 13 Featured Products
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
       setIsLoading(true); // Start loading
       try {
-        const featuredRes = await fetchDataFromApi(`/api/product?f=true`);
+        const featuredRes = await fetchDataFromApi(`/api/product?f=true&limit=13`);
         setFeaturedProductData(featuredRes);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -205,18 +220,37 @@ const App = () => {
     fetchFeaturedProducts();
   }, []);
 
+  // Get 13 New Products
+  useEffect(() => {
+    const fetchNewProducts = async () => {
+      setIsLoading(true); // Start loading
+      try {
+        const newRes = await fetchDataFromApi(`/api/product?sortBy=date-desc&limit=13`);
+        setNewProductData(newRes);
+      } catch (error) {
+        console.error('Error fetching data: ', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchNewProducts();
+  }, [])
+
   // Get Category and SubCategory info
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true); // Start loading
       try {
-        const [catRes, subCatRes] = await Promise.all([
+        const [catRes, subCatRes, allProductRes] = await Promise.all([
           fetchDataFromApi(`/api/category/`),
           fetchDataFromApi(`/api/subcategory/`),
+          fetchDataFromApi(`/api/product/`),
         ]);
 
         setCatData(catRes);
         setSubCatData(subCatRes);
+        setAllProductData(allProductRes);
 
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -227,6 +261,10 @@ const App = () => {
 
     fetchData(); // Call the async function
   }, []);
+
+  useEffect(() => {
+    setIsLogin(isAuthenticated);
+  }, [isAuthenticated])
 
   // Render LoadingSpinner before authentication check finishes
   if (isCheckingAuth) {
@@ -240,28 +278,34 @@ const App = () => {
   return (
     <BrowserRouter>
       <MyContext.Provider value={values}>
-        {isCheckingAuth && <Header />}
+        {/* Render Header and Footer only if the user is authenticated */}
+        {isAuthenticated && <Header />}
         <Routes>
           {isLoading ? ( // Conditional rendering based on loading state
             <Route path='/' element={<div>Loading...</div>} />
           ) : (
-            catData && subCatData && productData && <Route path='/' element={<ProtectedRoute><Home/></ProtectedRoute>} />
+            catData && subCatData && productData && <Route path='/' element={<ProtectedRoute><Home /></ProtectedRoute>} />
           )}
-          <Route path='/category/:id' exact={true} element={<Listing type="category" />} />
-          <Route path='/subcategory/:id' exact={true} element={<Listing type="subcategory" />} />
-          <Route path='/products' exact={true} element={<Listing type="products" />} />
-          <Route path='/search' exact={true} element={<Listing type="filtered" />} />
+          <Route path='/category/:id' exact={true} element={<ProtectedRoute><Listing type="category" /></ProtectedRoute>} />
+          <Route path='/subcategory/:id' exact={true} element={<ProtectedRoute><Listing type="subcategory" /></ProtectedRoute>} />
+          <Route path='/products' exact={true} element={<ProtectedRoute><Listing type="products" /></ProtectedRoute>} />
+          <Route path='/search' exact={true} element={<ProtectedRoute><Listing type="filtered" /></ProtectedRoute>} />
+          <Route path='/featured' exact={true} element={<ProtectedRoute><Listing type="featured" /></ProtectedRoute>} />
+          <Route path='/new' exact={true} element={<ProtectedRoute><Listing type="new" /></ProtectedRoute>} />
 
           <Route exact={true} path='/product/:id' element={<ProductDetails />} />
           <Route exact={true} path='/cart' element={<Cart />} />
 
-          <Route path='/signup' element={<RedirectAuthenticatedUser><SignUp /></RedirectAuthenticatedUser>} />
-          <Route path='/login' element={<RedirectAuthenticatedUser><Login /></RedirectAuthenticatedUser>} />
+          {/* Only non-authenticated users can access these routes */}
+          <Route path='/signup' element={<RedirectAuthenticatedClient><SignUp /></RedirectAuthenticatedClient>} />
+          <Route path='/login' element={<RedirectAuthenticatedClient><Login /></RedirectAuthenticatedClient>} />
           <Route path='/verify-email' element={<EmailVerification />} />
-          <Route path='/forgot-password' element={<RedirectAuthenticatedUser><ForgotPassword /></RedirectAuthenticatedUser>} />
-          <Route path='/reset-password/:token' element={<RedirectAuthenticatedUser><ResetPassword /></RedirectAuthenticatedUser>} />
+          <Route path='/forgot-password' element={<RedirectAuthenticatedClient><ForgotPassword /></RedirectAuthenticatedClient>} />
+          <Route path='/reset-password/:token' element={<RedirectAuthenticatedClient><ResetPassword /></RedirectAuthenticatedClient>} />
         </Routes>
-        {isCheckingAuth && <Footer />}
+
+        {/* Render Footer only if the user is authenticated */}
+        {isAuthenticated && <Footer />}
         {isOpenProductModal && <ProductModal info={productModalData} />}
       </MyContext.Provider>
     </BrowserRouter>

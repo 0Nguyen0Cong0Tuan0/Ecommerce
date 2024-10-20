@@ -44,8 +44,16 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Redirect authenticated clients to the home page
+const RedirectAuthenticatedUser = ({ children }) => {
+  const { isAuthenticated, user } = useAuthStore();
 
+  if (isAuthenticated && user.isVerified) {
+    return <Navigate to='/' replace />;
+  }
 
+  return children;
+};
 
 const App = () => {
   const [isToggleSidebar, setIsToggleSidebar] = useState(false);
@@ -66,7 +74,7 @@ const App = () => {
   // SUB CATEGORIES FOR DASHBOARD TABLE
   const [subCatData, setSubCatData] = useState([]);
   // CATEGORIES FOR SELECTION BOX
-  const [subCatDataBox, setSubCatDataBox] = useState([]); 
+  const [subCatDataBox, setSubCatDataBox] = useState([]);
 
   // PRODUCTS
   const [productData, setProductData] = useState([]);
@@ -101,6 +109,8 @@ const App = () => {
   };
 
   const { isCheckingAuth, checkAuth } = useAuthStore();
+
+
 
   useEffect(() => {
     checkAuth(); // Checking authentication

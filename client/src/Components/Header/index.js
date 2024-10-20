@@ -6,14 +6,19 @@ import Button from '@mui/material/Button';
 
 // Graphic
 import logo from '../../assets/lr.gif';
-import { FiUser } from 'react-icons/fi';
 import { IoBagOutline } from 'react-icons/io5';
+
+import Client from '../Client';
+import useAuthStore from '../../store/authStore';
+
 
 import { useContext } from 'react';
 import { MyContext } from '../../App';
 
 const Header = () => {
     const context = useContext(MyContext);
+
+    const { client } = useAuthStore();
 
     return (
         <>
@@ -49,9 +54,7 @@ const Header = () => {
                                                 <Button className='bg-blue-500 text-white px-4 py-2 rounded'>Sign In</Button>
                                             </Link>
                                         ) : (
-                                            <Button className='w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center'>
-                                                <FiUser />
-                                            </Button>
+                                            <Client client={client} />
                                         )
                                     }
 

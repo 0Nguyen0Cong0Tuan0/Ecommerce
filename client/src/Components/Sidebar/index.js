@@ -11,7 +11,7 @@ const Sidebar = () => {
     const context = useContext(MyContext);
     const navigator = useNavigate();
 
-    const productStatus = ['In Stock', 'Out of Stock']; // Adjusted to handle stock status
+    const productStatus = ['In Stock', 'Out of Stock', 'On Sale']; // Adjusted to handle stock status
 
     // Fetch and set the price range based on product data
     useEffect(() => {
@@ -32,15 +32,15 @@ const Sidebar = () => {
     }, [context.productData]);
 
     useEffect(() => {
-        if (context.productData?.productList?.length > 0) {
-            const prices = context.productData.productList.map((item) => parseFloat(item.price.$numberDecimal));
+        if (context.allProductData?.productList?.length > 0) {
+            const prices = context.allProductData.productList.map((item) => parseFloat(item.price.$numberDecimal));
             const minPrice = Math.min(...prices);
             const maxPrice = Math.max(...prices);
             context.setMinPrice(minPrice);
             context.setMaxPrice(maxPrice);
             context.setValue([minPrice, maxPrice]);
         }
-    }, [context.productData]);
+    }, [context.allProductData]);
 
     // Ensure the slider values are within bounds
     useEffect(() => {
@@ -60,10 +60,10 @@ const Sidebar = () => {
     // Handle when the slider interaction is finished (user releases the slider)
     const handleSliderCommit = async () => {
         window.scrollTo(0, 0);
-        
+
         context.setProductData([]);
         context.setIsLoading(true);
-        
+
         try {
             const categoryQuery = context.selectedCategories.join(',');
             const statusQuery = context.selectedStatus.length > 0 ? `&status=${context.selectedStatus.join(',')}` : '';
@@ -71,7 +71,7 @@ const Sidebar = () => {
             context.setPageFilter(1);
 
             const url = `/api/product?category=${categoryQuery}&minPrice=${context.value[0]}&maxPrice=${context.value[1]}${statusQuery}${brandsQuery}&page=${context.pageFilter}&limit=${context.itemsPerPageFilter}&search=${context.searchFilterQuery}&sortBy=${context.sortByFilter}`;
-    
+
             console.log(`Fetching from: ${url}`);
             const res = await fetchDataFromApi(url);
             context.setProductData(res);
@@ -81,11 +81,22 @@ const Sidebar = () => {
             context.setIsLoading(false);
         }
     };
-    
+
+    const handleSelectStatus = (item) => {
+        switch (item) {
+            case 'In Stock':
+                return 1;
+            case 'Out of Stock':
+                return 2;
+            case 'On Sale':
+                return 3;
+            default:
+                return;
+        }
+    }
 
     // Handle checkbox change for categories
     const handleCheckboxChange = (event, categoryId) => {
-        navigator('/search');
         context.setSelectedCategories(prev => {
             if (event.target.checked) {
                 return [...prev, categoryId]; // Add category if checked
@@ -93,11 +104,11 @@ const Sidebar = () => {
                 return prev.filter(id => id !== categoryId); // Remove category if unchecked
             }
         });
+        navigator('/search');
     };
 
     // Handle checkbox change for stock status
     const handleStatusChange = (event, status) => {
-        navigator('/search');
         context.setSelectedStatus(prev => {
             if (event.target.checked) {
                 return [...prev, status]; // Add status if checked
@@ -105,10 +116,10 @@ const Sidebar = () => {
                 return prev.filter(s => s !== status); // Remove status if unchecked
             }
         });
+        navigator('/search');
     };
 
     const handleBrandChange = (event, brand) => {
-        navigator('/search');
         context.setSelectedBrands(prev => {
             if (event.target.checked) {
                 return [...prev, brand];
@@ -116,6 +127,7 @@ const Sidebar = () => {
                 return prev.filter(b => b !== brand);
             }
         });
+        navigator('/search');
     };
 
     return (
@@ -174,11 +186,11 @@ const Sidebar = () => {
                     <div className="max-h-60 overflow-y-auto">
                         <ul>
                             {productStatus.map((item, index) => (
-                                <li key={`${index} ${item}`} value={item === 'In Stock' ? true : false}>
+                                <li key={`${index} ${item}`} value={() => handleSelectStatus(item)}>
                                     <FormControlLabel
                                         control={
                                             <Checkbox
-                                                onChange={(e) => handleStatusChange(e, item === 'In Stock' ? true : false)}  // Correctly passing the boolean value
+                                                onChange={(e) => handleStatusChange(e, handleSelectStatus(item))} // Fix here
                                             />
                                         }
                                         label={item}

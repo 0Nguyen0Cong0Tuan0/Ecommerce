@@ -21,10 +21,20 @@ import 'swiper/css/pagination';
 import { Pagination } from 'swiper/modules';
 import { useContext } from "react";
 import { MyContext } from "../../App";
+import { useNavigate } from "react-router-dom";
 
 
 const Home = () => {
     const context = useContext(MyContext);
+    const navigate = useNavigate();
+
+    const navigateToFeaturedProductPage = async () => {
+        navigate('/featured');
+    }
+
+    const navigateToNewProductPage = () => {
+        navigate('/new');
+    }
 
     return (
         <>
@@ -56,6 +66,7 @@ const Home = () => {
                                     padding: '5px 20px',
                                 }}
                                 className='ml-auto'
+                                onClick={() => navigateToFeaturedProductPage()}
                             >
                                 <p className="text-base text-black">View All</p>
                                 <IoIosArrowRoundForward className="text-base text-black" />
@@ -91,6 +102,7 @@ const Home = () => {
                                     padding: '5px 20px',
                                 }}
                                 className=' ml-auto'
+                                onClick={() => navigateToNewProductPage()}
                             >
                                 <p className="text-base text-black">View All</p>
                                 <IoIosArrowRoundForward className="text-base text-black" />
@@ -99,9 +111,9 @@ const Home = () => {
 
                         <div className="productRow w-full">
                             <Swiper slidesPerView={4} spaceBetween={20} pagination={{ dynamicBullets: true }} modules={[Pagination]} className="mySwiper">
-                                {context.productData?.products?.length !== 0 && context.productData?.products?.map((item, index) => (
+                                {context.newProductData?.productList?.length !== 0 && context.newProductData?.productList?.map((item, index) => (
                                     <SwiperSlide key={index}>
-                                        <ProductItem item={item} />
+                                        <ProductItem item={item} view={null}/>
                                     </SwiperSlide>
                                 ))}
                             </Swiper>

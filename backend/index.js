@@ -4,8 +4,11 @@ const express = require('express'); // type: commonJS (in package.json)
 // import express from 'express'; // type: module (in package.json)
 
 const connectDB = require('./db/connectDB');
+const axios = require('axios'); // Ensure you have axios installed
 
-const authRoutes = require('./routes/auth.route');
+
+const authRoutesUser = require('./routes/auth.route.user');
+const authRoutesClient = require('./routes/auth.route.client');
 const productRoutes = require('./routes/product.route');
 const categoryRoutes = require('./routes/category.route');
 const subCategoryRoutes = require('./routes/subcategory.route');
@@ -36,15 +39,25 @@ app.use(cors({
     credentials: true,
 }));
 
-app.use(express.json()); // allows us to parse incoming requests with JSON payloads (req.body)
+app.use(express.json()); // Parse incoming requests with JSON payloads
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser()); // Parse incoming cookies
 
-app.use(cookieParser()); // allows us to parse incoming cookies
-
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRoutesUser);
+app.use('/api/auth/client', authRoutesClient);
 app.use('/api/product', productRoutes);
 app.use('/api/category', categoryRoutes);
 app.use('/api/subcategory', subCategoryRoutes);
+
+// Proxy route
+app.get('/api/countries', async (req, res) => {
+    try {
+        const response = await axios.get('https://countriesnow.space/api/v0.1/countries/');
+        res.json(response.data); // Return the data from the external API
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching countries data' });
+    }
+});
 
 
 // if (process.env.NODE_ENV === 'production') {

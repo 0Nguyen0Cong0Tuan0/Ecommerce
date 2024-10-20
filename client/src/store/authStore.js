@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/auth';
+const API_URL = 'http://localhost:5000/api/auth/client';
 axios.defaults.withCredentials = true;
 
 const useAuthStore = create((set) => ({
-  user: null,
+  client: null,
   isAuthenticated: false,
   error: null,
   isLoading: false,
@@ -18,7 +18,7 @@ const useAuthStore = create((set) => ({
 
     try {
       const response = await axios.post(`${API_URL}/signup`, { email, password, name });
-      set({ user: response.data.user, isAuthenticated: true, isLoading: false, isLogout: null });
+      set({ client: response.data.client, isLoading: false, isLogout: null });
     } catch (error) {
       set({ error: error.response?.data?.message || 'Error signing up', isLoading: false });
       throw error;
@@ -32,7 +32,7 @@ const useAuthStore = create((set) => ({
       const response = await axios.post(`${API_URL}/login`, { email, password });
       set({
         isAuthenticated: true,
-        user: response.data.user,
+        client: response.data.client,
         error: null,
         isLoading: false,
         isLogout: null,
@@ -48,7 +48,7 @@ const useAuthStore = create((set) => ({
 
     try {
       await axios.post(`${API_URL}/logout`);
-      set({ user: null, isAuthenticated: false, error: null, isLoading: false });
+      set({ client: null, isAuthenticated: false, error: null, isLoading: false });
     } catch (error) {
       set({ error: error.response?.data?.message || 'Error logging out', isLoading: false });
       throw error;
@@ -60,7 +60,7 @@ const useAuthStore = create((set) => ({
 
     try {
       const response = await axios.post(`${API_URL}/verify-email`, { code });
-      set({ user: response.data.user, isAuthenticated: true, isLoading: false });
+      set({ client: response.data.client, isLoading: false });
       return response.data;
     } catch (error) {
       set({ error: error.response?.data?.message || 'Error verifying email', isLoading: false });
@@ -73,7 +73,7 @@ const useAuthStore = create((set) => ({
 
     try {
       const response = await axios.get(`${API_URL}/check-auth`);
-      set({ user: response.data.user, isAuthenticated: true, isCheckingAuth: false });
+      set({ client: response.data.client, isAuthenticated: true, isCheckingAuth: false });
     } catch (error) {
       set({
         error: error.response?.data?.message || 'Error checking authentication',

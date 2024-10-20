@@ -73,7 +73,7 @@ const login = async(req, res) => {
             return res.status(400).json( {success: false, message: 'Invalid credentials'} );
         }
 
-        generateTokenAndSetCookie(res, user._id);
+        generateTokenAndSetCookie(res, user._id); // for users
 
         user.lastLogin = Date.now();
         await user.save();

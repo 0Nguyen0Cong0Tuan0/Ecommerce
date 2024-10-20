@@ -10,6 +10,7 @@ import 'swiper/css/navigation';
 
 // import required modules
 import { Navigation } from 'swiper/modules';
+import { useNavigate } from 'react-router-dom';
 
 import { useContext } from 'react';
 import { MyContext } from '../../App';
@@ -17,6 +18,11 @@ import { MyContext } from '../../App';
 const HomeCat = () => {
 
     const context = useContext(MyContext);
+    const navigate = useNavigate();
+
+    const navigateCategoryProductPage = (id) => {
+        navigate(`/category/${id}`)
+    }
 
 
     return (
@@ -47,6 +53,8 @@ const HomeCat = () => {
                                                     borderRadius: '20px',
                                                     zIndex: 1 
                                                 }} 
+                                                onClick={() => navigateCategoryProductPage(cat._id)}
+                                                
                                                 className="w-11/12 rounded-2xl text-black z-10 flex flex-col justify-center items-center">
                                                 <img 
                                                     src={cat.images[0].url} 

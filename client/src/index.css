@@ -45,9 +45,21 @@ span {
             #a855f7,
             #6b7280);
 }
-  
+
+@layer utilities {
+    .animate-shake {
+        animation: shake 0.8s ease-in-out;
+    }
+}
+
+
 @media screen and (min-width: 1300px) {
-    .container, .container-lg, .container-md, .container-sm, .container-xl {
-      max-width: 1370px;
+
+    .container,
+    .container-lg,
+    .container-md,
+    .container-sm,
+    .container-xl {
+        max-width: 1370px;
     }
 }

@@ -5,6 +5,7 @@ import { IoMdHeartEmpty } from "react-icons/io";
 import { useContext, useRef, useState } from "react";
 import { MyContext } from "../../App";
 import { Link } from 'react-router-dom';
+import useAuthStore from '../../store/authStore';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -13,6 +14,10 @@ const ProductItem = (props) => {
     const [isHovered, setIsHovered] = useState(false);
     const context = useContext(MyContext);
     const sliderRef = useRef();
+
+    const { client } = useAuthStore();
+    let [cartFields, setCartFields] = useState({});
+    let [productQuantity, setProductQuantity] = useState();
 
     // Slider settings based on props.view
     const getSliderSettings = () => {
@@ -62,7 +67,6 @@ const ProductItem = (props) => {
         }
     };
 
-
     const settings = getSliderSettings();
 
     const viewProductDetails = (item) => {
@@ -84,7 +88,23 @@ const ProductItem = (props) => {
         }
     };
 
+    const quantity = (val) => {
+        setProductQuantity(val);
+    }
+
     const discount = ((1 - props.item.price.$numberDecimal / props.item.oldPrice.$numberDecimal) * 100).toFixed(2);
+
+    const addToCart = () => {
+        cartFields.productTitle = props.item.name;
+        cartFields.image = props.item.images[0].url;
+        cartFields.price = props.item.price.$numberDecimal;
+        cartFields.quantity = 1;
+        cartFields.subTotal = props.item.price.$numberDecimal * 1;
+        cartFields.productId = props.item._id;
+        cartFields.clientId = client._id; // Update 'userId' to 'clientId' to match your schema
+
+        context.addToCart(cartFields);
+    }
 
     return (
         <div
@@ -155,9 +175,9 @@ const ProductItem = (props) => {
             <div>
                 <Link to={`/product/${props.item.id}`} className='hover:no-underline'>
                     <p className="font-medium text-sm mb-2">
-                        {props.item?.name.length > (props.view === 'four' ? 65 : ( props.view === 'three' || props.view === null)  ? 90 : 150)
-                            ? props.item?.name.substr(0, props.view === 'four' ? 65 : ( props.view === 'three' || props.view === null) ? 90 : 150) + '...'
-                            : props.item.name.padEnd(props.view === 'four' ? 65 : ( props.view === 'three' || props.view === null) ? 90 : 150, '\u00A0')}
+                        {props.item?.name.length > (props.view === 'four' ? 65 : (props.view === 'three' || props.view === null) ? 90 : 150)
+                            ? props.item?.name.substr(0, props.view === 'four' ? 65 : (props.view === 'three' || props.view === null) ? 90 : 150) + '...'
+                            : props.item.name.padEnd(props.view === 'four' ? 65 : (props.view === 'three' || props.view === null) ? 90 : 150, '\u00A0')}
                     </p>
                 </Link>
 
@@ -195,6 +215,7 @@ const ProductItem = (props) => {
                         background: '#4123ab',
                         borderRadius: '5px',
                     }}
+                    onClick={() => addToCart()}
                     className="hover:bg-red-600"
                 >
                     <p className='text-white'>Add to Cart</p>

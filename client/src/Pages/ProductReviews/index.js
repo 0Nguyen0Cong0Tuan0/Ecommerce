@@ -8,8 +8,9 @@ import ProductItem from "../../Components/ProductItem";
 import useAuthStore from "../../store/authStore";
 import { IoIosHeartEmpty } from "react-icons/io";
 import { MdOutlineCompareArrows } from "react-icons/md";
-import { fetchDataFromApi, postData } from "../../utils/api";
+import { editData, fetchDataFromApi, postData } from "../../utils/api";
 
+import PropTypes from 'prop-types';
 import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -17,8 +18,6 @@ import Box from '@mui/material/Box';
 // Import Swiper and its components
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
-
-import Pagination from '@mui/material/Pagination';
 
 // Import Swiper styles
 import "swiper/css";
@@ -75,17 +74,13 @@ const ProductDetails = () => {
   useEffect(() => {
     const fetchReviews = async () => {
       if (product) {
-        const data = await fetchDataFromApi(`/api/review?productId=${product._id}&page=${context.pageReview}&limit=${context.itemsPerPageReview}`);
-        console.log(`Fetch the review from: /api/review?productId=${product._id}&page=${context.pageReview}&limit=${context.itemsPerPageReview}`);
+        const data = await fetchDataFromApi(`/api/review?productId=${product._id}`);
+        console.log(`Fetch the review from: /api/review?productId=${product._id}`);
         setReviewsData(data);  // Set the fetched reviews data
       }
     };
     fetchReviews();
-  }, [
-    product,
-    context.pageReview,
-    context.itemsPerPageReview
-  ]);
+  }, [product]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -203,7 +198,7 @@ const ProductDetails = () => {
         setReviewText("");
         setReviewRating(0);
         // Fetch the updated reviews after submission
-        const updatedReviews = await fetchDataFromApi(`/api/review?productId=${product._id}&page=${context.pageReview}&limit=${context.itemsPerPageReview}`);
+        const updatedReviews = await fetchDataFromApi(`/api/review?productId=${product._id}`);
         setReviewsData(updatedReviews);
       } else {
         alert("Error submitting review. Please try again.");
@@ -243,12 +238,6 @@ const ProductDetails = () => {
   const handleViewAllReview = () => {
     navigate('/reviews');
   }
-
-  const handleChangePage = (event, value) => {
-    context.setPageReview(value);
-
-    context.setIsLoading(true); // Optionally set loading to true if you want to show a loading state
-  };
 
   return (
     <div className="container">
@@ -353,7 +342,7 @@ const ProductDetails = () => {
         </div>
 
         {/* Review Section */}
-        <div className='w-full bg-slate-200 p-5 rounded-xl'>
+        <div className='bg-slate-200 p-5 rounded-xl'>
           <div className="">
             <h3 className="text-xl font-bold mb-4">Rating Points & Customer Reviews</h3>
             <div className="mb-3">
@@ -366,16 +355,15 @@ const ProductDetails = () => {
                     <div className="flex flex-col items-center justify-center w-1/3">
                       <div className="flex flex-col items-center">
                         <div className="flex items-center space-x-2 mb-2">
-                          <span className="text-6xl font-bold text-indigo-600">{reviewsData.averageRating === 0 ? '0' : reviewsData.averageRating}</span>
+                          <span className="text-6xl font-bold text-indigo-600">{reviewsData.averageRating}</span>
                           <span className="text-2xl text-gray-500">{`out of 5`}</span>
                         </div>
                         <div className="flex items-center space-x-3 mb-4">
                           <Rating value={reviewsData.averageRating} precision={0.5} readOnly size="large" />
                           <span className="text-lg text-gray-700">
-
-                            {reviewsData.totalReviews === 0 ? `0 review` : (reviewsData.totalReviews > 1
+                            {reviewsData.totalReviews > 1
                               ? `${reviewsData.totalReviews} reviews`
-                              : `${reviewsData.totalReviews} review`)}
+                              : `${reviewsData.totalReviews} review`}
                           </span>
                         </div>
                       </div>
@@ -401,7 +389,7 @@ const ProductDetails = () => {
                         <div key={rating} className="flex items-center space-x-4">
                           <span className="w-12 text-lg font-medium">{`${rating} Stars`}</span>
                           <LinearProgressWithLabel
-                            value={((reviewsData.ratingsCount[rating] / reviewsData.totalReviews) * 100).toFixed(2) === 'NaN' ? '0' : ((reviewsData.ratingsCount[rating] / reviewsData.totalReviews) * 100).toFixed(2)}
+                            value={((reviewsData.ratingsCount[rating] / reviewsData.totalReviews) * 100).toFixed(2)}
                           />
                           <span className="w-10 text-right text-gray-600 mb-4">{reviewsData.ratingsCount[rating]}</span>
                         </div>
@@ -414,7 +402,7 @@ const ProductDetails = () => {
 
             </div>
 
-            {reviewsData.totalReviews > 0 ? (
+            {reviewsData.reviews.length > 0 ? (
               reviewsData.reviews.map((review, index) => (
                 <div key={index} className="mb-4 p-4 border border-gray-300 rounded-lg shadow-sm">
                   <Rating value={review.customerRating} readOnly size="small" />
@@ -431,27 +419,7 @@ const ProductDetails = () => {
             ) : (
               <p>No reviews yet. Be the first to review this product!</p>
             )}
-
-            {reviewsData?.totalPages > 1 && (
-              <div className="flex justify-center mt-4">
-                <Pagination
-                  count={reviewsData?.totalPages}
-                  page={context.pageReview}
-                  onChange={handleChangePage}
-                  color="primary"
-                />
-              </div>
-            )}
           </div>
-
-
-
-
-
-
-
-
-
 
           <div className="mt-10">
             <h3 className="text-xl font-bold">Write a Review</h3>

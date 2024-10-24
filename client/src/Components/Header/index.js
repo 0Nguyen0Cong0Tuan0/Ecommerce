@@ -11,14 +11,18 @@ import { IoBagOutline } from 'react-icons/io5';
 import Client from '../Client';
 import useAuthStore from '../../store/authStore';
 
-
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';  // Import useState
 import { MyContext } from '../../App';
 
 const Header = () => {
     const context = useContext(MyContext);
-
     const { client } = useAuthStore();
+
+
+    // Update number of products in the cart when cartData changes
+    useEffect(() => {
+        context.setNumberProduct(context.cartData.length);
+    }, [context.cartData]);
 
     return (
         <>
@@ -59,14 +63,14 @@ const Header = () => {
                                     }
 
                                     <div className='flex items-center'>
-                                        <span className='text-lg'>$3.29</span>
+                                        {/* <span className='text-lg'>${context.cartData.reduce((total, item) => total + (item.price.$numberDecimal * item.quantity), 0).toFixed(2)}</span> */}
                                         <Link to='/cart'>
                                             <div className='relative ml-2'>
                                                 <Button className='w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center'>
                                                     <IoBagOutline />
                                                 </Button>
                                                 <span className='absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs'>
-                                                    1
+                                                    {context.numberProduct}  {/* Display the number of products */}
                                                 </span>
                                             </div>
                                         </Link>

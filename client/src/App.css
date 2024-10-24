@@ -649,32 +649,6 @@ footer .copyright ul li a:hover svg {
   /* Ensure proper vertical alignment */
 }
 
-.table th:nth-child(1),
-.table td:nth-child(1) {
-  width: 45%;
-}
-
-.table th:nth-child(2),
-.table td:nth-child(2) {
-  width: 15%;
-}
-
-.table th:nth-child(3),
-.table td:nth-child(3) {
-  width: 20%;
-  text-align: center;
-}
-
-.table th:nth-child(4),
-.table td:nth-child(4) {
-  width: 10%;
-}
-
-.table th:nth-child(5),
-.table td:nth-child(5) {
-  width: 10%;
-  text-align: center;
-}
 
 /* Header styling */
 .cartPage .table thead {
@@ -704,33 +678,11 @@ footer .copyright ul li a:hover svg {
   border: none;
 }
 
-/* Image and content layout */
-.cartItemImgWrapper {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.cartItemImgWrapper .imgWrapper {
-  width: 100px;
-  height: auto;
-  overflow: hidden;
-}
 
 .cartPage a:hover {
   text-decoration: none;
 }
 
-.cartItemImgWrapper .info h6 {
-  color: #000;
-  font-family: var(--font-family);
-  margin: 0;
-  font-size: 16px;
-}
-
-.cartItemImgWrapper .info h6:hover {
-  color: #2bbef9;
-}
 
 /* Remove button */
 .remove {
@@ -777,118 +729,17 @@ footer .copyright ul li a:hover svg {
   padding: 10px 0px !important;
 }
 
-/* Sign In Page */
-.signinPage {
-  font-family: var(--font-family);
-  width: 100%;
-  height: 100vh;
-  position: relative;
-}
-
-.signinPage .box {
-  position: absolute;
-  top: 50px;
-  left: 550px;
-  width: 500px;
-  height: auto;
-  background: #fff;
-  z-index: 100;
-  border-radius: 20px !important;
-}
-
-.signinPage .box h2 {
-
-  text-align: center;
-  font-size: 30px;
-}
-
-.signinPage .box form {
-  padding: 10px 40px;
-}
-
-.signinPage .box .form-group {
-  margin-bottom: 20px;
-}
-
-.border-effect {
-  position: relative;
-  color: #337ab7;
-  text-decoration: none;
-}
-
-.border-effect:after {
-  display: block;
-  position: absolute;
-  left: 0;
-  bottom: -2px;
-  width: 0px;
-  height: 1px;
-  background-color: #102a44;
-  content: "";
-  transition: .2s;
-}
-
-.border-effect:hover {
-  text-decoration: none;
-  color: #000;
-}
-
-.border-effect:hover:after {
-  width: 100%;
-}
-
-.btn-signIn {
-  font-family: var(--font-family) !important;
-}
-
-.forgotPass {
-  font-size: 16px;
-}
-
-.notRegister {
-  font-size: 18px;
-}
-
-.btn-signIn {
-  font-size: 20px !important;
-  padding: 10px !important;
-}
-
-.socials li a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease-in-out;
-}
-
-.socials li a svg {
-  font-size: 22px;
-  color: #337ab7;
-}
-
-.socials li a:hover {
-  background: #2bbef9 !important;
-  border: none;
-}
-
-.socials li a:hover svg {
-  color: #fff !important;
-}
-
-.signupPage.box {
-  top: 30px;
-  width: 500px;
-  height: auto;
-}
-
-.signUpName {
-  padding-left: 0px !important;
-}
-
-.signUpPhone {
-  padding-right: 0px !important;
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+  75% {
+    transform: translateX(-5px);
+  }
 }

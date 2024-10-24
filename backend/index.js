@@ -12,6 +12,8 @@ const authRoutesClient = require('./routes/auth.route.client');
 const productRoutes = require('./routes/product.route');
 const categoryRoutes = require('./routes/category.route');
 const subCategoryRoutes = require('./routes/subcategory.route');
+const cartRoutes = require('./routes/cart.route');
+const reviewRoutes = require('./routes/productReviews');
 
 const cookieParser = require('cookie-parser'); // to exact information (token,...) from the require.cookie 
 
@@ -48,6 +50,8 @@ app.use('/api/auth/client', authRoutesClient);
 app.use('/api/product', productRoutes);
 app.use('/api/category', categoryRoutes);
 app.use('/api/subcategory', subCategoryRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/review', reviewRoutes);
 
 // Proxy route
 app.get('/api/countries', async (req, res) => {

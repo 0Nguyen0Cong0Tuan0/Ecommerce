@@ -17,7 +17,7 @@ const Sidebar = () => {
     useEffect(() => {
         const brandsMap = {};
 
-        context.productData?.productList?.forEach(product => {
+        context.allProductData?.productList?.forEach(product => {
             const category = product.category.name;
             const brand = product.brand; // Assuming the product data includes a 'brand' field
 
@@ -29,7 +29,7 @@ const Sidebar = () => {
         });
 
         context.setBrandsByCategory(brandsMap);
-    }, [context.productData]);
+    }, [context.allProductData]);
 
     useEffect(() => {
         if (context.allProductData?.productList?.length > 0) {

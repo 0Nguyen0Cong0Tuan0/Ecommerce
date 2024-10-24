@@ -11,11 +11,11 @@ export const fetchDataFromApi = async (url) => {
 }
 
 
-export const postData = async (url, formData) => {
+export const postData = async (url, formData, isFormData = true) => {
     try {
         const response = await axios.post(`http://localhost:5000${url}`, formData, {
             headers: {
-                'Content-Type': 'multipart/form-data' // Required for file upload
+                'Content-Type': isFormData ? 'multipart/form-data' : 'application/json'
             }
         });
         return response.data;
@@ -28,7 +28,7 @@ export const postData = async (url, formData) => {
 
 export const editData = async (url, updatedData) => {
     try {
-        const response = await axios.put('http://localhost:5000' + url, updatedData);
+        const response = await axios.put(`http://localhost:5000${url}`, updatedData);
         return response.data;
     } catch (error) {
         console.error(error);

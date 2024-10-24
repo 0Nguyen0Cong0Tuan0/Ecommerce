@@ -15,6 +15,7 @@ import ResetPassword from './Pages/ResetPassword';
 // Components
 import Header from './Components/Header';
 import Footer from './Components/Footer';
+import DialogAddToCart from './Components/DialogAddToCart';
 import ProductModal from './Components/ProductModal';
 import LoadingSpinner from './Components/LoadingSpinner';
 import useAuthStore from './store/authStore';
@@ -22,7 +23,9 @@ import useAuthStore from './store/authStore';
 // Route
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import React, { createContext, useEffect, useState } from 'react';
-import { fetchDataFromApi } from './utils/api';
+import { fetchDataFromApi, postData } from './utils/api';
+import DialogConflict from './Components/DialogConflict';
+
 
 const MyContext = createContext();
 
@@ -72,7 +75,8 @@ const App = () => {
   const [newProductData, setNewProductData] = useState([]);
   // All Product Data
   const [allProductData, setAllProductData] = useState([]);
-
+  // Cart Data
+  const [cartData, setCartData] = useState([]);
 
   const [page, setPage] = useState(1);
   const [pageCategoryProduct, setPageCategoryProduct] = useState(1);
@@ -80,6 +84,7 @@ const App = () => {
   const [pageFilter, setPageFilter] = useState(1);
   const [pageFeatured, setPageFeatured] = useState(1);
   const [pageNew, setPageNew] = useState(1);
+  const [pageReview, setPageReview] = useState(1);
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [itemsPerCategoryPage, setItemsPerCategoryPage] = useState(10);
@@ -87,7 +92,8 @@ const App = () => {
   const [itemsPerPageFilter, setItemsPerPageFilter] = useState(10);
   const [itemsPerPageFeatured, setItemsPerPageFeatured] = useState(10);
   const [itemsPerPageNew, setItemsPerPageNew] = useState(10);
-  
+  const [itemsPerPageReview, setItemsPerPageReview] = useState(3);
+
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchCategoryPageQuery, setSearchCategoryPageQuery] = useState('');
@@ -114,6 +120,43 @@ const App = () => {
   const [selectedStatus, setSelectedStatus] = useState([]); // State to hold selected stock status
   const [selectedBrands, setSelectedBrands] = useState([]); // Track selected brands
   const [brandsByCategory, setBrandsByCategory] = useState({});
+
+  // Add Product to Cart
+  const [addingInCart, setAddingInCart] = useState(false);
+  // Added Product
+  const [addedProduct, setAddedProduct] = useState();
+  const [numberProduct, setNumberProduct] = useState(0);  // Use useState to manage number of products
+
+  // Dialog for Adding to Cart notification
+  const [isOpenDialogCart, setIsOpenDialogCart] = useState(false);
+  const [isOpenDialogConflict, setIsOpenDialogConflict] = useState(false);
+
+  const { isCheckingAuth, checkAuth, isAuthenticated } = useAuthStore();
+
+  useEffect(() => {
+    fetchDataFromApi(`/api/cart`).then((res) => {
+      setCartData(res);
+    });
+  }, [cartData]);
+
+  const addToCart = async (productToCart) => {
+    console.log("Adding to cart:", productToCart);
+    setAddingInCart(true); // Start showing loading indicator
+
+    try {
+      const res = await postData(`/api/cart/add`, productToCart, false);
+
+      if (res !== null && res !== undefined && res !== "") {
+        setIsOpenDialogCart(true); // Open the dialog on success
+        setAddedProduct(productToCart); // Set the added product for displaying
+      }
+    } catch (error) {
+      setIsOpenDialogConflict(true);
+      setAddedProduct(productToCart); // Set the added product for displaying
+    } finally {
+      setAddingInCart(false); // Ensure loading is stopped regardless of success or failure
+    }
+  };
 
 
   const values = {
@@ -168,6 +211,9 @@ const App = () => {
     searchNewQuery, setSearchNewQuery,
     sortByNew, setSortByNew,
 
+    pageReview, setPageReview,
+    itemsPerPageReview, setItemsPerPageReview,
+
     minPrice, setMinPrice,
     maxPrice, setMaxPrice,
     value, setValue,
@@ -175,9 +221,19 @@ const App = () => {
     selectedStatus, setSelectedStatus,
     selectedBrands, setSelectedBrands,
     brandsByCategory, setBrandsByCategory,
+
+    addToCart,
+
+    addingInCart, setAddingInCart,
+    numberProduct, setNumberProduct,
+
+    cartData, setCartData,
+
+    isOpenDialogCart, setIsOpenDialogCart,
+    isOpenDialogConflict, setIsOpenDialogConflict,
   };
 
-  const { isCheckingAuth, checkAuth, isAuthenticated } = useAuthStore();
+
 
   useEffect(() => {
     checkAuth(); // Checking authentication
@@ -292,7 +348,6 @@ const App = () => {
           <Route path='/search' exact={true} element={<ProtectedRoute><Listing type="filtered" /></ProtectedRoute>} />
           <Route path='/featured' exact={true} element={<ProtectedRoute><Listing type="featured" /></ProtectedRoute>} />
           <Route path='/new' exact={true} element={<ProtectedRoute><Listing type="new" /></ProtectedRoute>} />
-
           <Route exact={true} path='/product/:id' element={<ProductDetails />} />
           <Route exact={true} path='/cart' element={<Cart />} />
 
@@ -306,7 +361,17 @@ const App = () => {
 
         {/* Render Footer only if the user is authenticated */}
         {isAuthenticated && <Footer />}
-        {isOpenProductModal && <ProductModal info={productModalData} />}
+        {
+          isOpenProductModal && <ProductModal info={productModalData} />
+        }
+
+        {
+          isOpenDialogCart && <DialogAddToCart product={addedProduct} />
+        }
+
+        {
+          isOpenDialogConflict && <DialogConflict product={addedProduct}/>
+        }
       </MyContext.Provider>
     </BrowserRouter>
   );

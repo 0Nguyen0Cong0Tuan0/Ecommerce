@@ -7,17 +7,17 @@ const router = express.Router();
 router.get('/', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const perPage = parseInt(req.query.limit) || 3; // Set a default limit
+        const perPage = parseInt(req.query.limit) || 7; // Set a default limit
         const productId = req.query.productId; // Product ID to filter by
-        const starRating = parseInt(req.query.rating); // Filter by star rating (1-5)
+        const starRatings = req.query.rating ? req.query.rating.split(',').map(Number) : []; // Split and convert to numbers
         const sortBy = req.query.sortBy || 'date-asc'; // Default sorting by date ascending
 
         // Initialize the filter object
         const filter = { productId };
 
         // Add star rating filter if specified
-        if (starRating >= 1 && starRating <= 5) {
-            filter.customerRating = starRating; // Filter for the specific star rating
+        if (starRatings.length > 0) {
+            filter.customerRating = { $in: starRatings }; // Filter for multiple star ratings
         }
 
         // Determine sort order

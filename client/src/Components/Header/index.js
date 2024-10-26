@@ -7,11 +7,13 @@ import Button from '@mui/material/Button';
 // Graphic
 import logo from '../../assets/lr.gif';
 import { IoBagOutline } from 'react-icons/io5';
+import { FaClipboardList } from "react-icons/fa";
+
 
 import Client from '../Client';
 import useAuthStore from '../../store/authStore';
 
-import { useContext, useEffect, useState } from 'react';  // Import useState
+import { useContext, useEffect } from 'react';  // Import useState
 import { MyContext } from '../../App';
 
 const Header = () => {
@@ -21,8 +23,9 @@ const Header = () => {
 
     // Update number of products in the cart when cartData changes
     useEffect(() => {
-        context.setNumberProduct(context.cartData.length);
-    }, [context.cartData]);
+        context.setNumberProductInCart(context.cartData.length);
+        context.setNumberProductInWishList(context.wishListData.length);
+    }, [context.cartData, context.wishListData]);
 
     return (
         <>
@@ -63,14 +66,27 @@ const Header = () => {
                                     }
 
                                     <div className='flex items-center'>
-                                        {/* <span className='text-lg'>${context.cartData.reduce((total, item) => total + (item.price.$numberDecimal * item.quantity), 0).toFixed(2)}</span> */}
-                                        <Link to='/cart'>
-                                            <div className='relative ml-2'>
-                                                <Button className='w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center'>
-                                                    <IoBagOutline />
+                                        <Link to='/wishlist' aria-label='Wish List'>
+                                            <div className='relative'>
+                                                <Button className='w-4 h-10 bg-gray-100 rounded-full flex items-center justify-center'>
+                                                    <FaClipboardList className='size-6' />
                                                 </Button>
                                                 <span className='absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs'>
-                                                    {context.numberProduct}  {/* Display the number of products */}
+                                                    {context.numberProductInWishList > 0 ? context.numberProductInWishList : '0'}
+                                                </span>
+                                            </div>
+                                        </Link>
+
+                                    </div>
+
+                                    <div className='flex items-center'>
+                                        <Link to='/cart' aria-label='Cart'>
+                                            <div className='relative'>
+                                                <Button className='w-4 h-10 bg-gray-100 rounded-full flex items-center justify-center'>
+                                                    <IoBagOutline className='size-8' />
+                                                </Button>
+                                                <span className='absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs'>
+                                                    {context.numberProductInCart > 0 ? context.numberProductInCart : '0'}
                                                 </span>
                                             </div>
                                         </Link>

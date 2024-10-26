@@ -2,7 +2,8 @@ import Button from '@mui/material/Button';
 import Rating from '@mui/material/Rating';
 import { TfiFullscreen } from "react-icons/tfi";
 import { IoMdHeartEmpty } from "react-icons/io";
-import { useContext, useRef, useState } from "react";
+import { useContext, useRef, useState, useEffect } from "react";
+import { fetchDataFromApi } from '../../utils/api';
 import { MyContext } from "../../App";
 import { Link } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
@@ -12,12 +13,12 @@ import "slick-carousel/slick/slick-theme.css";
 
 const ProductItem = (props) => {
     const [isHovered, setIsHovered] = useState(false);
+    const [rating, setRating] = useState(0); // Local state for product rating
     const context = useContext(MyContext);
     const sliderRef = useRef();
 
     const { client } = useAuthStore();
     let [cartFields, setCartFields] = useState({});
-    let [productQuantity, setProductQuantity] = useState();
 
     // Slider settings based on props.view
     const getSliderSettings = () => {
@@ -26,11 +27,11 @@ const ProductItem = (props) => {
             case 'one':
                 return {
                     dots: false,
-                    infinite: imageCount > 1, // Only enable infinite scrolling if more than 1 image
+                    infinite: imageCount > 1,
                     speed: 500,
-                    slidesToShow: imageCount > 1 ? imageCount : 1, // Show all images if more than 1, otherwise just 1
+                    slidesToShow: imageCount > 1 ? imageCount : 1,
                     slidesToScroll: 1,
-                    autoplay: imageCount > 1, // Only autoplay if more than 1 image
+                    autoplay: imageCount > 1,
                     autoplaySpeed: 1000,
                 };
             case 'two':
@@ -38,7 +39,7 @@ const ProductItem = (props) => {
                     dots: false,
                     infinite: imageCount > 1,
                     speed: 500,
-                    slidesToShow: imageCount > 1 ? 2 : 1, // Show 2 images if available, otherwise just 1
+                    slidesToShow: imageCount > 1 ? 2 : 1,
                     slidesToScroll: 1,
                     autoplay: imageCount > 1,
                     autoplaySpeed: 1000,
@@ -88,11 +89,15 @@ const ProductItem = (props) => {
         }
     };
 
-    const quantity = (val) => {
-        setProductQuantity(val);
-    }
-
     const discount = ((1 - props.item.price.$numberDecimal / props.item.oldPrice.$numberDecimal) * 100).toFixed(2);
+
+    useEffect(() => {
+        const fetchReviews = async () => {
+            const data = await fetchDataFromApi(`/api/review?productId=${props.item._id}`);
+            setRating(data.averageRating); // Set rating in local state
+        };
+        fetchReviews();
+    }, [props.item]);
 
     const addToCart = () => {
         cartFields.productTitle = props.item.name;
@@ -104,7 +109,17 @@ const ProductItem = (props) => {
         cartFields.clientId = client._id; // Update 'userId' to 'clientId' to match your schema
 
         context.addToCart(cartFields);
-    }
+    };
+
+    const addToWishList = () => {
+        cartFields.productTitle = props.item.name;
+        cartFields.image = props.item.images[0].url;
+        cartFields.price = props.item.price.$numberDecimal;
+        cartFields.productId = props.item._id;
+        cartFields.clientId = client._id; // Update 'userId' to 'clientId' to match your schema
+
+        context.addToWishList(cartFields);
+    };
 
     return (
         <div
@@ -163,11 +178,15 @@ const ProductItem = (props) => {
             </div>
 
             <div className="absolute top-3 right-3 z-10 flex flex-col items-center justify-center gap-2 opacity-0 hover:opacity-100 transition-opacity duration-300">
-                <Button onClick={() => viewProductDetails(props.item)} className="bg-white border border-gray-200">
+                <Button
+                    onClick={() => viewProductDetails(props.item)}
+                    className="bg-white border border-gray-200">
                     <TfiFullscreen className="text-md font-bold text-black hover:text-red-500" />
                 </Button>
 
-                <Button className="bg-white border border-gray-200">
+                <Button
+                    className="bg-white border border-gray-200"
+                    onClick={() => addToWishList()}>
                     <IoMdHeartEmpty className="text-xl font-bold text-black hover:text-red-500" />
                 </Button>
             </div>
@@ -185,7 +204,7 @@ const ProductItem = (props) => {
                     {props?.item?.countInStock > 0
                         ? <span className="text-green-500 text-sm">In Stock</span>
                         : <span className="text-red-500 text-sm">Out of Stock</span>}
-                    <Rating name='read-only' value={4.5} readOnly size="small" precision={0.5} />
+                    <Rating name='read-only' value={Number(rating)} readOnly size="small" precision={0.5} /> {/* Use local rating */}
                 </div>
 
                 <div className="flex items-center my-2">

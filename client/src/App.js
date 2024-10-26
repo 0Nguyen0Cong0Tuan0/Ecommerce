@@ -16,15 +16,19 @@ import ResetPassword from './Pages/ResetPassword';
 import Header from './Components/Header';
 import Footer from './Components/Footer';
 import DialogAddToCart from './Components/DialogAddToCart';
+import DialogConflictToCart from './Components/DialogConflictToCart';
+import DialogAddToWishList from './Components/DialogAddToWishList';
+import DialogConflictToWishList from './Components/DialogConflictToWishList';
 import ProductModal from './Components/ProductModal';
-import LoadingSpinner from './Components/LoadingSpinner';
 import useAuthStore from './store/authStore';
 
 // Route
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import React, { createContext, useEffect, useState } from 'react';
 import { fetchDataFromApi, postData } from './utils/api';
-import DialogConflict from './Components/DialogConflict';
+import ProductReviews from './Pages/ProductReviews';
+import GradientCircularProgress from './Components/Loading';
+import Wishlist from './Pages/Wishlist';
 
 
 const MyContext = createContext();
@@ -77,6 +81,8 @@ const App = () => {
   const [allProductData, setAllProductData] = useState([]);
   // Cart Data
   const [cartData, setCartData] = useState([]);
+  // WishList Data
+  const [wishListData, setWishListData] = useState([]);
 
   const [page, setPage] = useState(1);
   const [pageCategoryProduct, setPageCategoryProduct] = useState(1);
@@ -92,7 +98,7 @@ const App = () => {
   const [itemsPerPageFilter, setItemsPerPageFilter] = useState(10);
   const [itemsPerPageFeatured, setItemsPerPageFeatured] = useState(10);
   const [itemsPerPageNew, setItemsPerPageNew] = useState(10);
-  const [itemsPerPageReview, setItemsPerPageReview] = useState(3);
+  const [itemsPerPageReview, setItemsPerPageReview] = useState(7);
 
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -123,41 +129,64 @@ const App = () => {
 
   // Add Product to Cart
   const [addingInCart, setAddingInCart] = useState(false);
+  // Add Product to Wishlist
+  const [addingInWishList, setAddingInWishList] = useState(false);
+
   // Added Product
-  const [addedProduct, setAddedProduct] = useState();
-  const [numberProduct, setNumberProduct] = useState(0);  // Use useState to manage number of products
+  const [addedProductInCart, setAddedProductInCart] = useState();
+  const [numberProductInCart, setNumberProductInCart] = useState(0);  // Use useState to manage number of products
+
+  // Added Wishlist
+  const [addedProductInWishList, setAddedProductInWishList] = useState();
+  const [numberProductInWishList, setNumberProductInWishList] = useState(0);  // Use useState to manage number of products
+
+  const [averageRating, setAverageRating] = useState(0);
 
   // Dialog for Adding to Cart notification
   const [isOpenDialogCart, setIsOpenDialogCart] = useState(false);
-  const [isOpenDialogConflict, setIsOpenDialogConflict] = useState(false);
+  const [isOpenDialogConflictCart, setIsOpenDialogConflictCart] = useState(false);
 
-  const { isCheckingAuth, checkAuth, isAuthenticated } = useAuthStore();
+  // Dialog for Adding to WishList notification
+  const [isOpenDialogWishList, setIsOpenDialogWishList] = useState(false);
+  const [isOpenDialogConflictWishList, setIsOpenDialogConflictWishList] = useState(false);
 
-  useEffect(() => {
-    fetchDataFromApi(`/api/cart`).then((res) => {
-      setCartData(res);
-    });
-  }, [cartData]);
+  const { isCheckingAuth, checkAuth, isAuthenticated, client } = useAuthStore();
 
   const addToCart = async (productToCart) => {
     console.log("Adding to cart:", productToCart);
     setAddingInCart(true); // Start showing loading indicator
+    setAddedProductInCart(productToCart); // Set the added product for displaying
 
     try {
       const res = await postData(`/api/cart/add`, productToCart, false);
-
-      if (res !== null && res !== undefined && res !== "") {
-        setIsOpenDialogCart(true); // Open the dialog on success
-        setAddedProduct(productToCart); // Set the added product for displaying
-      }
+      console.log("Response from addToCart:", res); // Log the response for debugging
+      setIsOpenDialogCart(true); // Open the dialog on success
     } catch (error) {
-      setIsOpenDialogConflict(true);
-      setAddedProduct(productToCart); // Set the added product for displaying
+      console.log("Error adding to cart:", error); // Log the error for debugging
+      setIsOpenDialogConflictCart(true); // This will trigger a re-render
+
     } finally {
       setAddingInCart(false); // Ensure loading is stopped regardless of success or failure
     }
   };
 
+  const addToWishList = async (productToWishList) => {
+    console.log("Adding to wish list:", productToWishList);
+    setAddingInWishList(true); // Start showing loading indicator
+    setAddedProductInWishList(productToWishList); // Set the added product for displaying
+
+
+    try {
+      const res = await postData(`/api/wishlist/add`, productToWishList, false);
+      console.log("Response from addToWishlist:", res); // Log the response for debugging
+      setIsOpenDialogWishList(true); // Open the dialog on success
+    } catch (error) {
+      console.log("Error adding to wishlist:", error); // Log the error for debugging
+      setIsOpenDialogConflictWishList(true); // Open conflict dialog on error
+    } finally {
+      setAddingInWishList(false); // Ensure loading is stopped regardless of success or failure
+    }
+  };
 
   const values = {
     countryList,
@@ -223,14 +252,25 @@ const App = () => {
     brandsByCategory, setBrandsByCategory,
 
     addToCart,
+    addToWishList,
 
     addingInCart, setAddingInCart,
-    numberProduct, setNumberProduct,
+    numberProductInCart, setNumberProductInCart,
+
+    numberProductInWishList, setNumberProductInWishList,
+
+    addingInWishList, setAddingInWishList,
 
     cartData, setCartData,
+    wishListData, setWishListData,
 
     isOpenDialogCart, setIsOpenDialogCart,
-    isOpenDialogConflict, setIsOpenDialogConflict,
+    isOpenDialogConflictCart, setIsOpenDialogConflictCart,
+
+    isOpenDialogWishList, setIsOpenDialogWishList,
+    isOpenDialogConflictWishList, setIsOpenDialogConflictWishList,
+
+    averageRating, setAverageRating,
   };
 
 
@@ -255,6 +295,7 @@ const App = () => {
       const response = await fetch('http://localhost:5000/api/countries'); // Adjust the URL for production
       const data = await response.json();
       setCountryList(data.data);
+      setIsLoading(false); // Stop loading after fetching
     }
     getCountries();
   }, []);
@@ -320,16 +361,39 @@ const App = () => {
 
   useEffect(() => {
     setIsLogin(isAuthenticated);
+    setIsLoading(false); // Stop loading after fetching
   }, [isAuthenticated])
+
+  useEffect(() => {
+    if (isAuthenticated && client?._id) {
+      setIsLoading(true); // Start loading before fetching
+      fetchDataFromApi(`/api/cart?clientId=${client._id}`).then((res) => {
+        setCartData(res);
+        setIsLoading(false); // Stop loading after fetching
+      });
+    }
+  }, [isAuthenticated, client]); // Removed cartData from the dependencies
+  
+
+  useEffect(() => {
+    if (isAuthenticated && client?._id) {
+      fetchDataFromApi(`/api/wishlist?clientId=${client._id}`).then((res) => {
+        setWishListData(res);
+        setIsLoading(false); // Stop loading after fetching
+      });
+    }
+  }, [isAuthenticated, client, wishListData]);
 
   // Render LoadingSpinner before authentication check finishes
   if (isCheckingAuth) {
     return (
       <MyContext.Provider value={values}>
-        <LoadingSpinner />
+        <GradientCircularProgress />
       </MyContext.Provider>
     );
   }
+
+
 
   return (
     <BrowserRouter>
@@ -338,7 +402,7 @@ const App = () => {
         {isAuthenticated && <Header />}
         <Routes>
           {isLoading ? ( // Conditional rendering based on loading state
-            <Route path='/' element={<div>Loading...</div>} />
+            <Route path='/' element={<GradientCircularProgress />} />
           ) : (
             catData && subCatData && productData && <Route path='/' element={<ProtectedRoute><Home /></ProtectedRoute>} />
           )}
@@ -350,6 +414,8 @@ const App = () => {
           <Route path='/new' exact={true} element={<ProtectedRoute><Listing type="new" /></ProtectedRoute>} />
           <Route exact={true} path='/product/:id' element={<ProductDetails />} />
           <Route exact={true} path='/cart' element={<Cart />} />
+          <Route exact={true} path='/reviews/:id' element={<ProductReviews />} />
+          <Route exact={true} path='/wishlist' element={<Wishlist />} />
 
           {/* Only non-authenticated users can access these routes */}
           <Route path='/signup' element={<RedirectAuthenticatedClient><SignUp /></RedirectAuthenticatedClient>} />
@@ -361,17 +427,11 @@ const App = () => {
 
         {/* Render Footer only if the user is authenticated */}
         {isAuthenticated && <Footer />}
-        {
-          isOpenProductModal && <ProductModal info={productModalData} />
-        }
-
-        {
-          isOpenDialogCart && <DialogAddToCart product={addedProduct} />
-        }
-
-        {
-          isOpenDialogConflict && <DialogConflict product={addedProduct}/>
-        }
+        {isOpenProductModal && <ProductModal info={productModalData} />}
+        {isOpenDialogCart && <DialogAddToCart product={addedProductInCart} />}
+        {isOpenDialogConflictCart && <DialogConflictToCart product={addedProductInCart} />}
+        {isOpenDialogWishList && <DialogAddToWishList product={addedProductInWishList} />}
+        {isOpenDialogConflictWishList && <DialogConflictToWishList product={addedProductInWishList} />}
       </MyContext.Provider>
     </BrowserRouter>
   );

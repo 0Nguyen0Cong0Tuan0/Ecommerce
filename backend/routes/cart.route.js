@@ -7,10 +7,18 @@ const Cart = require('../models/cart');
 
 router.get('/', async (req, res) => {
     try {
-        const cartList = await Cart.find(req.query);
+        // Assuming client ID is in req.user (after authentication) or passed as a query
+        const clientId = req.user?._id || req.query.clientId;
+
+        if (!clientId) {
+            return res.status(400).json({ success: false, message: "Client ID is required" });
+        }
+
+        // Fetch cart list for the specific client
+        const cartList = await Cart.find({ clientId });
 
         if (!cartList) {
-            res.status(500).json({ success: false })
+            return res.status(404).json({ success: false, message: "No cart data found" });
         }
 
         return res.status(200).json(cartList);
@@ -20,12 +28,16 @@ router.get('/', async (req, res) => {
     }
 });
 
+
 router.post('/add', async (req, res) => {
     const { productTitle, image, price, quantity, subTotal, productId, clientId } = req.body;
+
+    console.log("Received request to add product to cart:", req.body); // Log request body for debugging
 
     try {
         // Check if product already exists in the cart for the same client
         const cartItem = await Cart.findOne({ productId, clientId });
+        console.log("Cart item found:", cartItem); // Debugging log
 
         if (cartItem) {
             // Product is already in the cart
@@ -50,35 +62,14 @@ router.post('/add', async (req, res) => {
 
         // Save to database
         const savedCart = await newCart.save();
+        console.log("Cart item saved successfully:", savedCart); // Log saved item for debugging
         return res.status(201).json(savedCart);
-
     } catch (error) {
-        // Handle any unexpected errors
+        console.error("Error saving cart item:", error); // Log any errors for debugging
         return res.status(500).json({ error: error.message });
     }
 });
 
-router.delete('/remove', async (req, res) => {
-    const cartItem = await Cart.findById(req.params.id);
-
-    if (!cartItem) {
-        res.status(404).json({ error: 'The cart item given id is not found! ' });
-    }
-
-    const deletedItem = await Cart.findByIdAndDelete(req.params.id);
-
-    if (!deletedItem) {
-        res.status(404).json({
-            error: 'Cart item not found!',
-            success: false,
-        })
-    }
-
-    res.status(200).json({
-        success: true,
-        message: 'Cart Item deleted',
-    })
-});
 
 router.put('/:id', async (req, res) => {
     try {

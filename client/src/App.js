@@ -11,6 +11,7 @@ import SignUp from './Pages/SignUp';
 import EmailVerification from './Pages/EmailVerification';
 import ForgotPassword from './Pages/ForgotPassword';
 import ResetPassword from './Pages/ResetPassword';
+import ThankYouPage from './Pages/ThankYou';
 
 // Components
 import Header from './Components/Header';
@@ -29,6 +30,8 @@ import { fetchDataFromApi, postData } from './utils/api';
 import ProductReviews from './Pages/ProductReviews';
 import GradientCircularProgress from './Components/Loading';
 import Wishlist from './Pages/Wishlist';
+import Checkout from './Pages/Checkout';
+import PaymentShippingPage from './Pages/PaymentShipping';
 
 
 const MyContext = createContext();
@@ -150,6 +153,10 @@ const App = () => {
   const [isOpenDialogWishList, setIsOpenDialogWishList] = useState(false);
   const [isOpenDialogConflictWishList, setIsOpenDialogConflictWishList] = useState(false);
 
+  // Checkout Process Step
+  const [paymentProcess, setPaymentProcess] = useState(false);
+  const [clientInfo, setClientInfo] = useState('');
+
   const { isCheckingAuth, checkAuth, isAuthenticated, client } = useAuthStore();
 
   const addToCart = async (productToCart) => {
@@ -161,6 +168,9 @@ const App = () => {
       const res = await postData(`/api/cart/add`, productToCart, false);
       console.log("Response from addToCart:", res); // Log the response for debugging
       setIsOpenDialogCart(true); // Open the dialog on success
+
+      const res2 = await fetchDataFromApi(`/api/cart?clientId=${client._id}`)
+      setCartData(res2);
     } catch (error) {
       console.log("Error adding to cart:", error); // Log the error for debugging
       setIsOpenDialogConflictCart(true); // This will trigger a re-render
@@ -180,6 +190,9 @@ const App = () => {
       const res = await postData(`/api/wishlist/add`, productToWishList, false);
       console.log("Response from addToWishlist:", res); // Log the response for debugging
       setIsOpenDialogWishList(true); // Open the dialog on success
+
+      const res2 = await fetchDataFromApi(`/api/wishlist?clientId=${client._id}`)
+      setWishListData(res2);
     } catch (error) {
       console.log("Error adding to wishlist:", error); // Log the error for debugging
       setIsOpenDialogConflictWishList(true); // Open conflict dialog on error
@@ -271,6 +284,9 @@ const App = () => {
     isOpenDialogConflictWishList, setIsOpenDialogConflictWishList,
 
     averageRating, setAverageRating,
+
+    paymentProcess, setPaymentProcess,
+    clientInfo, setClientInfo,
   };
 
 
@@ -291,6 +307,7 @@ const App = () => {
   }, [checkAuth, themeMode]);
 
   useEffect(() => {
+    setIsLoading(true);
     const getCountries = async () => {
       const response = await fetch('http://localhost:5000/api/countries'); // Adjust the URL for production
       const data = await response.json();
@@ -373,16 +390,17 @@ const App = () => {
       });
     }
   }, [isAuthenticated, client]); // Removed cartData from the dependencies
-  
+
 
   useEffect(() => {
     if (isAuthenticated && client?._id) {
+      setIsLoading(true); // Start loading before fetching
       fetchDataFromApi(`/api/wishlist?clientId=${client._id}`).then((res) => {
         setWishListData(res);
         setIsLoading(false); // Stop loading after fetching
       });
     }
-  }, [isAuthenticated, client, wishListData]);
+  }, [isAuthenticated, client]);
 
   // Render LoadingSpinner before authentication check finishes
   if (isCheckingAuth) {
@@ -413,9 +431,12 @@ const App = () => {
           <Route path='/featured' exact={true} element={<ProtectedRoute><Listing type="featured" /></ProtectedRoute>} />
           <Route path='/new' exact={true} element={<ProtectedRoute><Listing type="new" /></ProtectedRoute>} />
           <Route exact={true} path='/product/:id' element={<ProductDetails />} />
-          <Route exact={true} path='/cart' element={<Cart />} />
-          <Route exact={true} path='/reviews/:id' element={<ProductReviews />} />
-          <Route exact={true} path='/wishlist' element={<Wishlist />} />
+          <Route exact={true} path='/cart' element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+          <Route exact={true} path='/reviews/:id' element={<ProtectedRoute><ProductReviews /></ProtectedRoute>} />
+          <Route exact={true} path='/wishlist' element={<ProtectedRoute><Wishlist /></ProtectedRoute>} />
+          <Route exact={true} path='/checkout' element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+          <Route exact={true} path='/payment' element={<ProtectedRoute><PaymentShippingPage /></ProtectedRoute>} />
+          <Route path='/thankyou' element={<ProtectedRoute><ThankYouPage /></ProtectedRoute>} />
 
           {/* Only non-authenticated users can access these routes */}
           <Route path='/signup' element={<RedirectAuthenticatedClient><SignUp /></RedirectAuthenticatedClient>} />
@@ -432,6 +453,7 @@ const App = () => {
         {isOpenDialogConflictCart && <DialogConflictToCart product={addedProductInCart} />}
         {isOpenDialogWishList && <DialogAddToWishList product={addedProductInWishList} />}
         {isOpenDialogConflictWishList && <DialogConflictToWishList product={addedProductInWishList} />}
+        {paymentProcess && <PaymentShippingPage />}
       </MyContext.Provider>
     </BrowserRouter>
   );

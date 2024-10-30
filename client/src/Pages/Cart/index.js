@@ -4,7 +4,7 @@ import QuantityBox from '../../Components/QuantityBox';
 import { Link } from "react-router-dom";
 import { IoIosClose } from "react-icons/io";
 import { IoCartSharp } from "react-icons/io5";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState, useRef } from "react";
 import { deleteData, editData, fetchDataFromApi } from "../../utils/api";
 import useAuthStore from "../../store/authStore";
 import { MyContext } from "../../App";
@@ -13,24 +13,27 @@ import GradientCircularProgress from "../../Components/Loading";
 const Cart = () => {
     const { client } = useAuthStore();
     const context = useContext(MyContext);
-    const [totalPrice, setTotalPrice] = useState(0);
     const [ratings, setRatings] = useState({});
     const [loading, setLoading] = useState(true);
 
+    const timerId = useRef(null);
 
     const updateQuantity = (itemId, newQuantity) => {
-        context.setCartData((prevData) => {
-            return prevData.map(item => {
-                if (item._id === itemId) {
-                    return {
-                        ...item,
-                        quantity: newQuantity,
-                        subTotal: (item.price.$numberDecimal * newQuantity).toFixed(2)
-                    };
-                }
-                return item;
+        clearTimeout(timerId.current);
+        timerId.current = setTimeout(() => {
+            context.setCartData((prevData) => {
+                return prevData.map(item => {
+                    if (item._id === itemId) {
+                        return {
+                            ...item,
+                            quantity: newQuantity,
+                            subTotal: (item.price.$numberDecimal * newQuantity).toFixed(2)
+                        };
+                    }
+                    return item;
+                });
             });
-        });
+        }, 500); // Set delay to 500ms for debouncing
     };
 
     const selectedItem = (product) => {
@@ -44,48 +47,47 @@ const Cart = () => {
             clientId: client._id
         };
 
-        editData(`/api/cart/${product?._id}`, cartFields).then((res) => {
-            console.log('OK');
+        editData(`/api/cart/${product._id}`, cartFields).then(() => {
+            console.log('Cart updated successfully');
+        }).catch(error => {
+            console.error('Error updating cart:', error);
         });
     };
 
-    useEffect(() => {
-        let total = 0;
-        if (context.cartData.length > 0) {
-            total = context.cartData.reduce((total, item) => {
-                return total + (item.price.$numberDecimal * item.quantity);
-            }, 0).toFixed(2);
-        }
-
-        setTotalPrice(total);
-
+    const totalPrice = useMemo(() => {
+        return context.cartData.reduce((total, item) => total + (item.price.$numberDecimal * item.quantity), 0).toFixed(2);
     }, [context.cartData]);
 
     useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
+    useEffect(() => {
         const fetchRatings = async () => {
-            const newRatings = {};
             try {
-                for (const item of context.cartData) {
-                    const rating = await fetchDataFromApi(`/api/review?productId=${item.productId}`);
-                    newRatings[item.productId] = rating.averageRating || 0;
+                const productIds = context.cartData.map(item => item.productId);
+                if (productIds.length > 0) {
+                    const ratingResponse = await fetchDataFromApi(`/api/review?productIds=${productIds.join(',')}`);
+                    if (ratingResponse && ratingResponse.ratings) {
+                        setRatings(ratingResponse.ratings);
+                    }
                 }
-                setRatings(newRatings);
             } catch (error) {
                 console.error("Error fetching ratings:", error);
-                // You may want to handle error state here
             } finally {
                 setLoading(false);
             }
         };
-
         fetchRatings();
     }, [context.cartData]);
 
-
-    const removeItem = (id) => {
-        deleteData(`/api/cart/${id}`).then((res) => {
-            console.log(res);
-        });
+    const removeItem = async (id) => {
+        try {
+            await deleteData(`/api/cart/${id}`);
+            context.setCartData(prevData => prevData.filter(item => item._id !== id));
+        } catch (error) {
+            console.error('Error removing item:', error);
+        }
     };
 
     if (loading) {
@@ -96,7 +98,7 @@ const Cart = () => {
         <section className="section cartPage">
             <div className="container">
                 <h2 className='hd mb-0'>Your Cart</h2>
-                <p>There are <b>{context.cartData.length > 0 ? context.cartData.length  : '0'}</b> products in your cart</p>
+                <p>There are <b>{context.cartData.length > 0 ? context.cartData.length : '0'}</b> products in your cart</p>
 
                 <div className='row'>
                     <div className="col-md-9 pr-4">
@@ -117,7 +119,7 @@ const Cart = () => {
                                         <tr key={index}>
                                             <td>
                                                 <div className="size-20" style={{ width: '80px', height: '80px', overflow: 'hidden' }}>
-                                                    <img src={item.image} className="w-100 h-100 object-cover" alt={item.productTitle} />
+                                                    <img src={item.image} loading="lazy" className="w-100 h-100 object-cover" alt={item.productTitle} />
                                                 </div>
                                             </td>
 
@@ -166,28 +168,20 @@ const Cart = () => {
                             <h4>CART TOTALS</h4>
 
                             <div className="d-flex align-items-center my-3">
-                                <span>Subtotal</span>
+                                <span>Estimated total</span>
                                 <span className="ml-auto">{`$${totalPrice}`}</span>
                             </div>
 
-                            <div className="d-flex align-items-center mb-3">
-                                <span>Shipping</span>
-                                <span className="ml-auto"><b>Free</b></span>
+                            <div className="d-flex align-items-center text-red-500">
+                                <span>Sales tax will be calculated during checkout where applicable</span>
                             </div>
 
-                            <div className="d-flex align-items-center mb-3">
-                                <span>Estimate for </span>
-                                <span className="ml-auto"><b>United Kingdom</b></span>
-                            </div>
 
-                            <div className="d-flex align-items-center mb-3">
-                                <span>Total</span>
-                                <span className="ml-auto">{`$${totalPrice}`}</span>
-                            </div>
-
-                            <Button className="btn-blue btn-lg btn-big btn-buynow">
-                                <IoCartSharp className="mr-2" />BUY NOW
-                            </Button>
+                            <Link to='/checkout'>
+                                <Button className="btn-blue btn-lg btn-big btn-buynow">
+                                    <IoCartSharp className="mr-2" />BUY NOW
+                                </Button>
+                            </Link>
                         </div>
                     </div>
                 </div>

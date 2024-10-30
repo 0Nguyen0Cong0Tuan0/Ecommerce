@@ -15,6 +15,8 @@ const subCategoryRoutes = require('./routes/subcategory.route');
 const cartRoutes = require('./routes/cart.route');
 const reviewRoutes = require('./routes/productReviews');
 const WishlistRoutes = require('./routes/wishlist.route');
+const OrderRoutes = require('./routes/order.route');
+const calculateShippingFee = require('./helper/calculateFee');
 
 const cookieParser = require('cookie-parser'); // to exact information (token,...) from the require.cookie 
 
@@ -54,6 +56,18 @@ app.use('/api/subcategory', subCategoryRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/review', reviewRoutes);
 app.use('/api/wishlist', WishlistRoutes);
+app.use('/api/orders', OrderRoutes);
+
+app.post('/api/calculate-shipping', async (req, res) => {
+    try {
+        const { info, shippingMethod } = req.body;
+        const { shippingFee, timeEstimate } = await calculateShippingFee(info.address, shippingMethod);
+        res.json({ shippingFee, timeEstimate });
+    } catch (error) {
+        console.error('Error calculating shipping fee:', error); // Log the error
+        res.status(500).json({ message: error.message || 'Internal Server Error' });
+    }
+});
 
 
 // Proxy route

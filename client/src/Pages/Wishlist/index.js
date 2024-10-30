@@ -1,10 +1,9 @@
 import Rating from "@mui/material/Rating";
 import Button from '@mui/material/Button';
-import QuantityBox from '../../Components/QuantityBox';
 import { Link } from "react-router-dom";
 import { IoIosClose } from "react-icons/io";
 import { useContext, useEffect, useState } from "react";
-import { deleteData, editData, fetchDataFromApi } from "../../utils/api";
+import { deleteData, fetchDataFromApi } from "../../utils/api";
 import useAuthStore from "../../store/authStore";
 import { MyContext } from "../../App";
 import GradientCircularProgress from "../../Components/Loading";

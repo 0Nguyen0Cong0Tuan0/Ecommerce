@@ -7,6 +7,7 @@ import React from 'react';
 import Dialog from '@mui/material/Dialog';
 import Slide from '@mui/material/Slide';
 import { MyContext } from '../../App';
+import { FixedSizeList as List } from 'react-window'; // Import react-window for virtualization
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction='up' ref={ref} {...props} />;
@@ -46,6 +47,21 @@ const CountryDropdown = () => {
             setcountryList(context.countryList);
         }
     };
+
+    // Render row function for react-window
+    const renderRow = ({ index, style }) => (
+        <li className="w-full list-none" style={style}>
+            <Button
+                onClick={() => selectCountry(countryList[index].country)}
+                className={`relative w-full text-left capitalize justify-start py-4 px-5 text-sm font-medium ${selectedTab !== null && context.countryList[selectedTab].country === countryList[index].country
+                    ? 'bg-gray-200 before:content-["✔"] before:text-2xl before:absolute before:right-5'
+                    : 'hover:bg-gray-50 hover:before:content-["❓"] hover:before:text-xl hover:before:absolute hover:before:right-5'
+                    }`}
+            >
+                <p>{countryList[index].country}</p>
+            </Button>
+        </li>
+    );
 
     return (
         <>
@@ -97,8 +113,6 @@ const CountryDropdown = () => {
 
                     <p className="mb-2 text-gray-500">Enter your address and we will specify the offer for your area</p>
 
-
-
                     <div className="relative w-full h-12 bg-gray-100 rounded-lg border border-gray-300 px-4">
                         <input
                             type="text"
@@ -125,21 +139,16 @@ const CountryDropdown = () => {
                         </Button>
                     </div>
 
-                    <ul className="mt-6 mb-0 max-h-[400px] overflow-y-scroll overflow-x-hidden divide-y divide-gray-200">
-                        {countryList?.length !== 0 &&
-                            countryList.map((item, index) => (
-                                <li key={index} className="w-full list-none">
-                                    <Button
-                                        onClick={() => selectCountry(item.country)}
-                                        className={`relative w-full text-left capitalize justify-start py-4 px-5 text-sm font-medium ${selectedTab !== null && context.countryList[selectedTab].country === item.country
-                                            ? 'bg-gray-200 before:content-["✔"] before:text-2xl before:absolute before:right-5'
-                                            : 'hover:bg-gray-50 hover:before:content-["❓"] hover:before:text-xl hover:before:absolute hover:before:right-5'
-                                            }`}
-                                    >
-                                        <p>{item.country}</p>
-                                    </Button>
-                                </li>
-                            ))}
+                    {/* Virtualized List */}
+                    <ul className="mt-6 mb-0 max-h-[400px] overflow-hidden">
+                        <List
+                            height={400} // Set the height of the list
+                            itemCount={countryList.length} // Total items
+                            itemSize={60} // Height of each item
+                            width="100%" // Set width for the list
+                        >
+                            {renderRow}
+                        </List>
                     </ul>
                 </div>
             </Dialog>
